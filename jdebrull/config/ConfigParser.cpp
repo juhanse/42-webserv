@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 17:53:13 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/30 19:10:23 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/01/31 17:44:17 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,12 +46,7 @@ std::vector<std::string> ConfigParser::tokenize(const std::string& input)
 	return (tokens);
 }
 
-void	parseLocation(std::vector<std::string>& tokens, size_t& i, Server& serv)
-{
-	
-}
-
-void	parseTokens(std::vector<std::string> tokens, std::vector<Server>& servers)
+void	parseTokens(std::vector<std::string>& tokens, std::vector<Server>& servers)
 {
 	size_t	i = 0;
 
@@ -63,33 +58,25 @@ void	parseTokens(std::vector<std::string> tokens, std::vector<Server>& servers)
 		if (i >= tokens.size() || tokens[i] != "{")
 			throw std::runtime_error("Expected '{'");
 		i++;
-		
-		Server	serv;
-		
+
+		Server		serv;
+
 		while (i < tokens.size() && tokens[i] != "}")
-		{	
-			if (tokens[i] == "listen")
-			{
-				i++;
-				if (i >= tokens.size())
-                    throw std::runtime_error("Expected value after listen");
-				parseListen(tokens[i], serv);
-				i++;
-				if (i >= tokens.size() || tokens[i] != ";")
-					throw (std::runtime_error("Garbage value after the Ip adress and port."));
-				i++;
+		{
+			if (tokens[i] == "listen") {
+				parseListen(tokens, i, serv);
 			}
 			else if (tokens[i] == "server_name") {
 				parseServerName(tokens, i, serv);
-			} 
+			}
 			else if (tokens[i] == "root") {
-				parseRoot(tokens, i, serv);
+				parseRoot(tokens, i, serv.root);
 			}
 			else if (tokens[i] == "index") {
-				parseIndex(tokens, i, serv);
+				parseIndex(tokens, i, serv.index);
 			}
 			else if (tokens[i] == "client_max_body_size") {
-				parseBodySize(tokens, i, serv);
+				parseMaxSize(tokens, i, serv.client_max_body_size, 1048576); //1MB
 			}
 			else if (tokens[i] == "error_page") {
 				parseErrorPage(tokens, i, serv);
@@ -107,25 +94,26 @@ void	parseTokens(std::vector<std::string> tokens, std::vector<Server>& servers)
 	}
 }
 
-std::vector<Server> ConfigParser::parse(const std::string& filename){
+std::vector<Server> ConfigParser::parse(const std::string& filename)
+{
 	std::vector<Server>	servers;
-	
+
 	std::ifstream	file(filename.c_str());
 	if (!file.is_open())
 		throw std::runtime_error("Cannot open config file.");
-	
+
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	std::string content = buffer.str();
-		
+
 	// std::cout << content << std::endl;
 
 	std::vector<std::string> tokens = tokenize(content);
-	
+
 	// for (size_t i = 0; i < tokens.size(); ++i)
 	// 	std::cout << "[" << tokens[i] << "]" << std::endl;
 
 	parseTokens(tokens, servers);
-	
+
 	return (servers);
 }

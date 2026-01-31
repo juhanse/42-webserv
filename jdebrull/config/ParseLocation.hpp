@@ -1,22 +1,20 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
+/*   ParseLocation.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/12 17:43:31 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/31 17:43:02 by jdebrull         ###   ########.fr       */
+/*   Created: 2026/01/31 12:37:53 by jdebrull          #+#    #+#             */
+/*   Updated: 2026/01/31 12:39:33 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Server.hpp"
+#ifndef PARSELOCATION_HPP
+# define PARSELOCATION_HPP
 
-Server::Server() : host("localhost"),
-					port(0),
-					server_name(),
-					root(""),
-					index(),
-					client_max_body_size(1048576),
-					error_page(),
-					locations() {}
+#include "ConfigParser.hpp"
+
+void	parseLocation(std::vector<std::string>& tokens, size_t& i, Server&  serv);
+
+#endif

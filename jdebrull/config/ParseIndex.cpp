@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ParseIndex.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jdebrull <jdebrull@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/29 16:09:08 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/29 16:09:18 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/01/31 14:38:43 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,17 +28,17 @@ static bool	isValidIndexFile(const std::string& token)
 	return (true);
 }
 
-void	parseIndex(std::vector<std::string>& tokens, size_t& i, Server& serv)
+void	parseIndex(std::vector<std::string>& tokens, size_t& i, std::vector<std::string>& dest)
 {
 	i++;
-	if (!serv.index.empty())
+	if (!dest.empty())
 		throw (std::runtime_error("Cannot have two different index directives."));
 	bool found = false;
 	while (i < tokens.size() && tokens[i] != ";")
 	{
 		if (!isValidIndexFile(tokens[i]))
 			throw (std::runtime_error("Invalid index filename"));
-		serv.index.push_back(tokens[i]);
+		dest.push_back(tokens[i]);
 		found = true;
 		i++;
 	}

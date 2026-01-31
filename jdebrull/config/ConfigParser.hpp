@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 17:49:45 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/30 19:08:11 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/01/31 17:42:35 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,13 +21,15 @@
 #include <stdexcept>
 #include <climits>
 #include "../core/Server.hpp"
+#include "../core/Location.hpp"
 #include "../utils/utils.hpp"
 #include "ParseListen.hpp"
 #include "ParseServerName.hpp"
 #include "ParseRoot.hpp"
 #include "ParseIndex.hpp"
-#include "ParseBodySize.hpp"
+#include "ParseMaxSize.hpp"
 #include "ParseErrorPage.hpp"
+#include "ParseLocation.hpp"
 
 class ConfigParser {
 	public:

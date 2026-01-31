@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ParseListen.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jdebrull <jdebrull@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/28 14:26:09 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/28 14:27:29 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/01/31 16:11:23 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,6 @@
 
 #include "ConfigParser.hpp"
 
-bool	parseListen(std::string tokens, Server& serv);
+void	parseListen(std::vector<std::string>& tokens, size_t& i, Server& serv);
 
 #endif

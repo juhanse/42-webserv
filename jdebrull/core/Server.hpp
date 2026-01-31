@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 17:39:59 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/30 18:30:07 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/01/31 17:43:37 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,8 @@ struct Server {
 	std::map<int, std::string>	error_page;
 	
 	std::vector<Location>	locations;
+	Server();
 };
+
 
 #endif

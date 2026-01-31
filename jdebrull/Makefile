@@ -4,8 +4,8 @@ CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
 TARGET		= webserv
 
 SRCS		=	main.cpp config/ConfigParser.cpp config/ParseListen.cpp config/ParseServerName.cpp \
-				config/ParseRoot.cpp config/ParseIndex.cpp config/ParseBodySize.cpp config/ParseErrorPage.cpp \
-				utils/utils.cpp \
+				config/ParseRoot.cpp config/ParseIndex.cpp config/ParseMaxSize.cpp config/ParseErrorPage.cpp \
+				config/ParseLocation.cpp core/Server.cpp core/Location.cpp utils/utils.cpp \
 
 OBJDIR		= obj
 OBJS		= $(SRCS:%.cpp=$(OBJDIR)/%.o)
