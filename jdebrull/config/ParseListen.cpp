@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/22 14:02:34 by Jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/31 17:31:22 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/01/31 17:50:24 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,26 +129,3 @@ void	parseListen(std::vector<std::string>& tokens, size_t& i, Server& serv)
 		throw (std::runtime_error("Expected a ';' after listen directive."));
 	i++;
 }
-
-// void	parseListen(std::vector<std::string>& tokens, size_t& i, Server& serv)
-// {
-// 	if (serv.port != 0)
-// 		throw (std::runtime_error("Multiple listen directives is not allowed."));
-// 	i++;
-// 	if (i >= tokens.size() || tokens[i] == ";")
-// 		throw (std::runtime_error("Expected value after listen"));
-
-// 	const char *str = tokens[i].c_str();
-// 	for (size_t j = 0; str[j]; j++) {
-// 		if ((str[j] != '.' && str[j] != ':' && !isDigit(str[j])))
-// 			throw (std::runtime_error("Invalid characters in Ip adress or port directive."));
-// 	}
-// 	if (!checkIpAddress(str))
-// 		throw (std::runtime_error("Invalid ip address for listen directive."));
-// 	if (!checkIpPort(str, serv))
-// 		throw (std::runtime_error("Invalid port address for listen directive."));
-// 	i++;
-// 	if (i >= tokens.size() || tokens[i] != ";")
-// 		throw (std::runtime_error("Expected a ';' after listen directive."));
-// 	i++;
-// }
