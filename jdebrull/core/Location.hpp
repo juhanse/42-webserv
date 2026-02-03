@@ -6,16 +6,17 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 16:50:30 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/31 17:43:49 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/03 15:30:57 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef LOCATION_HPP
 # define LOCATION_HPP
 
-#include <string>
-#include <set>
-#include <vector>
+# include <string>
+# include <set>
+# include <map>
+# include <vector>
 
 struct Location
 {
@@ -23,11 +24,15 @@ struct Location
 
 	std::string					path;
 	std::string					root;
-	std::vector<std::string>	index;
+	std::string					upload;
+	std::string					return_url;
+	int							return_code;
 	bool						autoindex;
 	bool						autoindex_set;
-
-	std::set<std::string> 		allowed_methods;
+	
+	std::vector<std::string>			index;
+	std::set<std::string> 				methods;
+	std::map<std::string, std::string>	cgi_extension;
 	Location();
 };
 

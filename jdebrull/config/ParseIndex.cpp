@@ -6,11 +6,18 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/29 16:09:08 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/31 14:38:43 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/03 16:50:32 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ParseIndex.hpp"
+
+static bool	isDirective(const std::string& token)
+{
+	return ( token == "methods" || token == "root" || token == "index"
+			|| token == "autoindex" || token == "client_max_size"
+			|| token == "upload" || token == "return" || token == "cgi_extension");
+}
 
 static bool	isValidIndexFile(const std::string& token)
 {
@@ -34,7 +41,7 @@ void	parseIndex(std::vector<std::string>& tokens, size_t& i, std::vector<std::st
 	if (!dest.empty())
 		throw (std::runtime_error("Cannot have two different index directives."));
 	bool found = false;
-	while (i < tokens.size() && tokens[i] != ";")
+	while (i < tokens.size() && tokens[i] != ";" && !isDirective(tokens[i]))
 	{
 		if (!isValidIndexFile(tokens[i]))
 			throw (std::runtime_error("Invalid index filename"));

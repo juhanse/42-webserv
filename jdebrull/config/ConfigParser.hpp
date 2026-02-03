@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 17:49:45 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/31 17:42:35 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/03 13:15:41 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@
 #include "ParseMaxSize.hpp"
 #include "ParseErrorPage.hpp"
 #include "ParseLocation.hpp"
+#include "../utils/debugPrint.hpp"
 
 class ConfigParser {
 	public:

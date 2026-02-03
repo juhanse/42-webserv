@@ -1,21 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ParseRoot.hpp                                      :+:      :+:    :+:   */
+/*   debugPrint.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/29 15:16:42 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/03 14:16:10 by jdebrull         ###   ########.fr       */
+/*   Created: 2026/02/03 13:13:11 by jdebrull          #+#    #+#             */
+/*   Updated: 2026/02/03 13:16:40 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PARSEROOT_HPP
-# define PARSEROOT_HPP
+#ifndef DEBUGPRINT_HPP
+# define DEBUGPRINT_HPP
 
-#include "ConfigParser.hpp"
+# include <iostream>
+# include "../config/ConfigParser.hpp"
 
-void	parseRoot(const std::vector<std::string>& tokens, size_t& i, std::string& dest);
-bool	isValidPath(const std::string& token);
+void printServers(const std::vector<Server> &servers);
 
 #endif

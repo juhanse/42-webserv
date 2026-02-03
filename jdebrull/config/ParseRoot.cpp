@@ -6,13 +6,13 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/29 15:17:54 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/31 15:55:56 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/03 14:16:16 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ParseRoot.hpp"
 
-static bool isValidPath(const std::string& token)
+bool	isValidPath(const std::string& token)
 {
 	if (token.empty())
 		return (false);

@@ -6,13 +6,13 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 19:06:46 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/30 19:08:52 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/03 14:37:30 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ParseErrorPage.hpp"
 
-static bool isValidPath(const std::string& token)
+bool isValidErrorCodePath(const std::string& token)
 {
 	if (token.empty())
 		return (false);
@@ -69,7 +69,7 @@ void	parseErrorPage(std::vector<std::string>& tokens, size_t& i, Server& serv)
 	if (codes.empty())
 		throw (std::runtime_error("Missing a valid code for the error_page directive."));
 	
-	if (i >= tokens.size() || !isValidPath(tokens[i]))
+	if (i >= tokens.size() || !isValidErrorCodePath(tokens[i]))
 		throw (std::runtime_error("Missing or invalid path for the error_page directive."));
 
 	std::string path = tokens[i];

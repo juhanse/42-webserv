@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 17:53:13 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/31 17:44:17 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/03 16:20:18 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ void	parseTokens(std::vector<std::string>& tokens, std::vector<Server>& servers)
 				parseIndex(tokens, i, serv.index);
 			}
 			else if (tokens[i] == "client_max_body_size") {
-				parseMaxSize(tokens, i, serv.client_max_body_size, 1048576); //1MB
+				parseMaxSize(tokens, i, serv.client_max_body_size, 52428800); //50MB
 			}
 			else if (tokens[i] == "error_page") {
 				parseErrorPage(tokens, i, serv);
@@ -84,6 +84,8 @@ void	parseTokens(std::vector<std::string>& tokens, std::vector<Server>& servers)
 			else if (tokens[i] == "location") {
 				parseLocation(tokens, i, serv);
 			}
+			else if (tokens[i] == ";")
+				throw (std::runtime_error("No ';' are allowed to roam the file aimelessly."));
 			else
 				throw (std::runtime_error("Unkown directive : " + tokens[i]));
 		}
@@ -105,8 +107,6 @@ std::vector<Server> ConfigParser::parse(const std::string& filename)
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	std::string content = buffer.str();
-
-	// std::cout << content << std::endl;
 
 	std::vector<std::string> tokens = tokenize(content);
 
