@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 17:53:13 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/03 16:20:18 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/05 16:46:59 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ void	parseTokens(std::vector<std::string>& tokens, std::vector<Server>& servers)
 				parseRoot(tokens, i, serv.root);
 			}
 			else if (tokens[i] == "index") {
-				parseIndex(tokens, i, serv.index);
+				parseIndex(tokens, i, serv.index, serv.index_set);
 			}
 			else if (tokens[i] == "client_max_body_size") {
 				parseMaxSize(tokens, i, serv.client_max_body_size, 52428800); //50MB
@@ -96,6 +96,17 @@ void	parseTokens(std::vector<std::string>& tokens, std::vector<Server>& servers)
 	}
 }
 
+static void	checkMissingDirectives(std::vector<Server>& servers)
+{
+	for (size_t i = 0; i < servers.size(); ++i)
+	{
+		if (!servers[i].listen_set)
+			throw (std::runtime_error("Missing Listen directive in server block."));
+		if (servers[i].root.empty())
+			throw (std::runtime_error("Missing root directive in server block."));
+	}
+}
+
 std::vector<Server> ConfigParser::parse(const std::string& filename)
 {
 	std::vector<Server>	servers;
@@ -114,6 +125,6 @@ std::vector<Server> ConfigParser::parse(const std::string& filename)
 	// 	std::cout << "[" << tokens[i] << "]" << std::endl;
 
 	parseTokens(tokens, servers);
-
+	checkMissingDirectives(servers);
 	return (servers);
 }

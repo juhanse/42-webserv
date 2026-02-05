@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/29 16:09:08 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/03 16:50:32 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/05 16:52:38 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,21 +35,21 @@ static bool	isValidIndexFile(const std::string& token)
 	return (true);
 }
 
-void	parseIndex(std::vector<std::string>& tokens, size_t& i, std::vector<std::string>& dest)
+void	parseIndex(std::vector<std::string>& tokens, size_t& i, std::vector<std::string>& dest, bool& index_set)
 {
-	i++;
-	if (!dest.empty())
+	if (index_set)
 		throw (std::runtime_error("Cannot have two different index directives."));
-	bool found = false;
+	i++;
+	index_set = true;
+	dest.clear();
 	while (i < tokens.size() && tokens[i] != ";" && !isDirective(tokens[i]))
 	{
 		if (!isValidIndexFile(tokens[i]))
 			throw (std::runtime_error("Invalid index filename"));
 		dest.push_back(tokens[i]);
-		found = true;
 		i++;
 	}
-	if (!found)
+	if (dest.empty())
 		throw (std::runtime_error("Index directives requires at least one filename."));
 	if (i >= tokens.size() || tokens[i] != ";")
 		throw (std::runtime_error("Missing ';' after index directive"));

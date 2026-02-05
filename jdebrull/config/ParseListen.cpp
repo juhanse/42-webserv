@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/22 14:02:34 by Jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/31 17:50:24 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/05 16:01:22 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,6 @@ static bool	checkIpAddress(const char *str)
 
 static void	checkIpPort(const char* str, Server& serv, size_t count)
 {
-
 	size_t i = 0;
 
 	if (!str)
@@ -106,8 +105,9 @@ static void	checkIpPort(const char* str, Server& serv, size_t count)
 
 void	parseListen(std::vector<std::string>& tokens, size_t& i, Server& serv)
 {
-	if (serv.port)
+	if (serv.listen_set)
 		throw (std::runtime_error("Multiple listen directives is not allowed."));
+	serv.listen_set = true;
 	i++;
 	if (i >= tokens.size() || tokens[i] == ";")
 		throw (std::runtime_error("Expected value after listen"));

@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/31 12:37:43 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/03 16:15:03 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/05 16:48:42 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,11 +159,21 @@ void parseCgiExtension(std::vector<std::string>& tokens, size_t& i, Location& lo
 	loc.cgi_extension[ext] = cgi_path;
 }
 
+static void	finalizeLocation(Location& loc, const Server& serv)
+{
+	if (loc.root.empty())
+		loc.root = serv.root;
+	if (loc.index.empty())
+		loc.index = serv.index;
+	if (loc.methods.empty())
+		loc.methods.insert("GET");
+}
+
 void	parseLocation(std::vector<std::string>& tokens, size_t& i, Server&  serv)
 {
 	Location loc;
 	i++;
-	if (i >= tokens.size() || tokens[i] == ";")
+	if (i >= tokens.size() || tokens[i] == ";" || tokens[i] == "{")
 		throw (std::runtime_error("Expected path for location directive."));
 	if (!isValidPath(tokens[i]))
 		throw (std::runtime_error("Invalid path for location directive."));
@@ -180,7 +190,7 @@ void	parseLocation(std::vector<std::string>& tokens, size_t& i, Server&  serv)
 			parseRoot(tokens, i, loc.root);
 		}
 		else if (tokens[i] == "index") {
-			parseIndex(tokens, i, loc.index);
+			parseIndex(tokens, i, loc.index, loc.index_set);
 		}
 		else if (tokens[i] == "autoindex")
 			parseAutoIndex(tokens, i, loc);
@@ -200,5 +210,6 @@ void	parseLocation(std::vector<std::string>& tokens, size_t& i, Server&  serv)
 	if (i >= tokens.size() || tokens[i] != "}")
 		throw (std::runtime_error("Expected '}' at end of location block."));
 	i++;
+	finalizeLocation(loc, serv);
 	serv.locations.push_back(loc);
 }

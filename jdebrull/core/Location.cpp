@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 16:52:54 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/03 15:24:37 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/05 16:45:12 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,4 +22,5 @@ Location::Location() :
 					autoindex(false),
 					autoindex_set(false),
 					index(),
+					index_set(),
 					methods() {}

@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 17:39:59 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/31 17:43:37 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/05 16:44:07 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,11 +21,13 @@
 struct Server {
 	std::string 			host;
 	int						port;
+	bool					listen_set;
 	
 	std::vector<std::string>	server_name;
 
 	std::string					root;
 	std::vector<std::string>	index;
+	bool						index_set;
 
 	size_t						client_max_body_size;
 	std::map<int, std::string>	error_page;

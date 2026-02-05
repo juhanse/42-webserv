@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 16:50:30 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/03 15:30:57 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/05 16:45:00 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ struct Location
 	bool						autoindex_set;
 	
 	std::vector<std::string>			index;
+	bool								index_set;
 	std::set<std::string> 				methods;
 	std::map<std::string, std::string>	cgi_extension;
 	Location();
