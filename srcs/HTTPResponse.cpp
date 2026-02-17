@@ -6,21 +6,21 @@ HTTPResponse::~HTTPResponse() {}
 std::map<int, std::string> HTTPResponse::_status_messages = HTTPResponse::_initStatusMessages();
 
 std::map<int, std::string> HTTPResponse::_initStatusMessages() {
-    std::map<int, std::string> m;
+    std::map<int, std::string> status;
 
-    m[200] = "OK";
-    m[201] = "Created";
-    m[204] = "No Content";
-    m[301] = "Moved Permanently";
-    m[400] = "Bad Request";
-    m[403] = "Forbidden";
-    m[404] = "Not Found";
-    m[405] = "Method Not Allowed";
-    m[413] = "Payload Too Large";
-    m[500] = "Internal Server Error";
-    m[502] = "Bad Gateway";
+    status[200] = "OK";
+    status[201] = "Created";
+    status[204] = "No Content";
+    status[301] = "Moved Permanently";
+    status[400] = "Bad Request";
+    status[403] = "Forbidden";
+    status[404] = "Not Found";
+    status[405] = "Method Not Allowed";
+    status[413] = "Payload Too Large";
+    status[500] = "Internal Server Error";
+    status[502] = "Bad Gateway";
 
-    return m;
+    return status;
 }
 
 std::string HTTPResponse::getRawResponse() const {
