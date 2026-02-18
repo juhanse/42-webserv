@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/31 12:37:43 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/05 16:48:42 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/18 16:36:33 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,6 +95,17 @@ static int	isValidReturnCode(const std::string& token)
 	return (n);
 }
 
+static bool	isValidReturnPath(const std::string& token)
+{
+	if (token.empty())
+		return (false);
+	if (token[0] == '/' || token[0] == '.')
+		return (true);
+	if (token.find("http://") == 0 || token.find("https://") == 0)
+		return (true);
+	return (false);
+}
+
 void	parseReturn(std::vector<std::string>& tokens, size_t& i, Location& loc)
 {
 	i++;
@@ -105,11 +116,11 @@ void	parseReturn(std::vector<std::string>& tokens, size_t& i, Location& loc)
 	i++;
 
 	std::string path;
-	if (i < tokens.size() && tokens[i][0] == '/')
+	if (i < tokens.size())
 	{
-		if (!isValidErrorCodePath(tokens[i]))
+		if (!isValidReturnPath(tokens[i]))
 			throw (std::runtime_error("Invalid path for return directive."));
-		
+
 		path = tokens[i];
 		i++;
 	}
@@ -149,7 +160,7 @@ void parseCgiExtension(std::vector<std::string>& tokens, size_t& i, Location& lo
 	std::string cgi_path = tokens[i];
 
 	if (!isValidCgiPath(cgi_path))
-		throw (std::runtime_error("Invalid path for cgi_extension directive."));
+		throw (std::runtime_error("Invalid path for cgi_extension directive " + tokens[i]));
 	i++;
 	if (i >= tokens.size() || tokens[i] != ";")
 		throw (std::runtime_error("Missing ';' after cgi_extension directive."));
@@ -184,7 +195,7 @@ void	parseLocation(std::vector<std::string>& tokens, size_t& i, Server&  serv)
 	i++;
 	while (i < tokens.size() && tokens[i] != "}")
 	{
-		if (tokens[i] == "methods")
+		if (tokens[i] == "allow_methods")
 			parseMethods(tokens, i, loc);
 		else if (tokens[i] == "root") {
 			parseRoot(tokens, i, loc.root);

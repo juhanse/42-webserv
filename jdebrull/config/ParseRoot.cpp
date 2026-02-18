@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/29 15:17:54 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/03 14:16:16 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/18 16:32:44 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ bool	isValidPath(const std::string& token)
 {
 	if (token.empty())
 		return (false);
-	if (token[0] != '/')
+	if (token[0] != '/' && token[0] != '.')
 		return (false);
 	if (token.find("..") != std::string::npos)
 		return (false);

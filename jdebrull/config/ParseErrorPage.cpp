@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 19:06:46 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/03 14:37:30 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/02/18 16:18:14 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ bool isValidErrorCodePath(const std::string& token)
 {
 	if (token.empty())
 		return (false);
-	if (token[0] != '/')
+	if (token[0] != '/' && token[0] != '.')
 		return (false);
 	for (size_t i = 0; i < token.size(); ++i)
 	{
@@ -35,7 +35,7 @@ static int	isValidCode(const std::string& token)
 	{
 		char c = token[i];
 		if (!isDigit(c))
-			throw (std::runtime_error("Only numbers are allowed for the error_page code."));
+			throw (std::runtime_error("Only numbers are allowed for the error_page code " + token));
 		n = (n * 10) + (c -'0');
 		if (n > 599)
 			throw (std::runtime_error("Error page code is not in the right range [400,599]."));
@@ -54,7 +54,7 @@ void	parseErrorPage(std::vector<std::string>& tokens, size_t& i, Server& serv)
 	std::vector<int>	codes;
 	while (i < tokens.size() && tokens[i] != ";")
 	{
-		if (tokens[i][0] == '/')
+		if (tokens[i][0] == '/' || tokens[i][0] == '.')
 			break ;
 
 		int	code = isValidCode(tokens[i]);
@@ -70,7 +70,7 @@ void	parseErrorPage(std::vector<std::string>& tokens, size_t& i, Server& serv)
 		throw (std::runtime_error("Missing a valid code for the error_page directive."));
 	
 	if (i >= tokens.size() || !isValidErrorCodePath(tokens[i]))
-		throw (std::runtime_error("Missing or invalid path for the error_page directive."));
+		throw (std::runtime_error("Missing or invalid path for the error_page directive " + tokens[i]));
 
 	std::string path = tokens[i];
 	i++;
