@@ -28,7 +28,7 @@ std::string HTTPResponse::getRawResponse() const {
     // On récupère le message correspondant au code
     std::string msg = _status_messages.count(_status_code) ? _status_messages.at(_status_code) : "Unknown Error";
 
-    res << "HTTP/1.1 " << _status_code << " " << msg << "\r\n";
+    res << "HTTP/1.0 " << _status_code << " " << msg << "\r\n";
     // ... suite des headers et body
     return res.str();
 }

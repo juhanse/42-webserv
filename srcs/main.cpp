@@ -40,7 +40,7 @@ int main(int ac, char **av) {
 
     // 2. MOCK REQUEST
     // Teste ici différentes URLs : "/index.html", "/inexistant.html", "/cgi-bin/test.py"
-    std::string raw = "GET /index.html HTTP/1.1\r\n"
+    std::string raw = "GET /index.html HTTP/1.0\r\n"
                       "Host: localhost\r\n"
                       "\r\n";
 
