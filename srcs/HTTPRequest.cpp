@@ -38,9 +38,3 @@ void HTTPRequest::parse(const std::string& rawData) {
     bodyStream << stream.rdbuf();
     _body = bodyStream.str();
 }
-
-const std::string& HTTPRequest::getMethod() const { return _method; }
-const std::string& HTTPRequest::getPath() const { return _path; }
-const std::string& HTTPRequest::getQuery() const { return _query; }
-const std::string& HTTPRequest::getProtocol() const { return _protocol; }
-const std::string& HTTPRequest::getBody() const { return _body; }
