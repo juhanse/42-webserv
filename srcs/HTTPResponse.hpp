@@ -12,21 +12,21 @@ class HTTPResponse {
 		int									_status_code;
 		std::string							_body;
 		std::map<std::string, std::string>	_headers;
-		static std::map<int, std::string>	_status_messages;
-		static std::map<int, std::string>	_initStatusMessages();
+
+		std::string _getStatusMessage(int code) const;
 
 	public:
 		HTTPResponse();
 		~HTTPResponse();
 
+		int getStatusCode() const;
+
 		void setStatusCode(int code);
 		void setHeader(const std::string& key, const std::string& value);
 		void setBody(const std::string& content);
 
-		// Helpers
-		void setContentType(const std::string& path); // MIME type
+		void setContentType(const std::string& path);
 		void generateErrorPage(int code, const ServerConfig& config);
 
-		// La méthode main -> Antonia
 		std::string getRawResponse() const; 
 };
