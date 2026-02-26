@@ -16,11 +16,10 @@ int main(int ac, char **av) {
 
 	std::cout << av[1] << std::endl;
 	
-	// 1. MOCK CONFIGURATION
+	// Conf file
 	ServerConfig config;
 	config.root = "./www";
 
-	// Configuration de la route "/"
 	Location locRoot;
 	locRoot.path = "/";
 	locRoot.root = "./www";
@@ -28,7 +27,6 @@ int main(int ac, char **av) {
 	locRoot.index = "index.html";
 	config.locations.push_back(locRoot);
 
-	// Configuration de la route "/cgi-bin"
 	Location locCgi;
 	locCgi.path = "/cgi-bin";
 	locCgi.root = "./www/cgi-bin";
@@ -38,8 +36,7 @@ int main(int ac, char **av) {
 	locCgi.cgi_path = "/usr/bin/python3";
 	config.locations.push_back(locCgi);
 
-	// 2. MOCK REQUEST
-	// Teste ici différentes URLs : "/index.html", "/inexistant.html", "/cgi-bin/test.py"
+	// Request
 	std::string raw = "GET /index.html HTTP/1.0\r\n"
 					"Host: localhost\r\n"
 					"\r\n";
@@ -50,13 +47,10 @@ int main(int ac, char **av) {
 	std::cout << "--- Requête Reçue ---" << std::endl;
 	std::cout << "Méthode : " << req.getMethod() << " | Path : " << req.getPath() << std::endl;
 
-	// 3. GÉNÉRATION DE LA RÉPONSE (MOI)
 	ResponseGenerator generator;
 	HTTPResponse res = generator.generate(req, config);
 
-	// 4. AFFICHAGE DU RÉSULTAT
 	std::cout << "\n--- Réponse Générée ---" << std::endl;
-	// On affiche le début de la réponse pour vérifier le status code et les headers
 	std::cout << res.getRawResponse() << std::endl;
 
 	return (0);
