@@ -4,26 +4,22 @@
 #include "HTTPResponse.hpp"
 #include "Config.hpp"
 #include <string>
-#include <sys/stat.h> // Pour stat()
+#include <sys/stat.h>
 #include <fstream>
 #include <sstream>
 
 class ResponseGenerator {
-    public:
-        ResponseGenerator();
-        ~ResponseGenerator();
+	private:
+		HTTPResponse _handleStatic(const HTTPRequest& req, const Location& loc, const ServerConfig& config);
+		HTTPResponse _handleCGI(const HTTPRequest& req, const Location& loc);
+		HTTPResponse _handleDelete(const std::string& fullPath);
 
-        // Point d'entrée unique pour ton module
-        HTTPResponse generate(const HTTPRequest& req, const ServerConfig& config);
+		const Location* _matchLocation(const std::string& requestPath, const ServerConfig& config);
+		std::string _readFile(const std::string& path);
 
-    private:
-        // Les trois piliers de ton module
-        HTTPResponse _handleStatic(const HTTPRequest& req, const Location& loc);
-        HTTPResponse _handleCGI(const HTTPRequest& req, const Location& loc);
-        HTTPResponse _handleDelete(const std::string& fullPath);
+	public:
+		ResponseGenerator();
+		~ResponseGenerator();
 
-        // Utilitaires internes
-        Location    _matchLocation(const std::string& requestPath, const ServerConfig& config);
-        std::string _readFile(const std::string& path);
-        std::string _identifyContentType(const std::string& path);
+		HTTPResponse generate(const HTTPRequest& req, const ServerConfig& config);
 };
