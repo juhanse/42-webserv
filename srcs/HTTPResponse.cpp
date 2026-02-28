@@ -59,7 +59,27 @@ std::string HTTPResponse::getRawResponse() const {
 }
 
 void HTTPResponse::setContentType(const std::string& path) {
-	(void)path; 
+	std::string ext = "";
+	size_t pos = path.find_last_of(".");
+
+	if (pos != std::string::npos) {
+		ext = path.substr(pos);
+	}
+
+	if (ext == ".html" || ext == ".htm")
+		setHeader("Content-Type", "text/html");
+	else if (ext == ".css")
+		setHeader("Content-Type", "text/css");
+	else if (ext == ".js")
+		setHeader("Content-Type", "application/javascript");
+	else if (ext == ".png")
+		setHeader("Content-Type", "image/png");
+	else if (ext == ".jpg" || ext == ".jpeg")
+		setHeader("Content-Type", "image/jpeg");
+	else if (ext == ".gif")
+		setHeader("Content-Type", "image/gif");
+	else
+		setHeader("Content-Type", "text/plain");
 }
 
 void HTTPResponse::generateErrorPage(int code, const ServerConfig& config) {
