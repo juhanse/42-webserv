@@ -15,14 +15,13 @@ int main(int ac, char **av) {
 	}
 
 	std::cout << av[1] << std::endl;
-	
-	// Conf file
+
 	ServerConfig config;
-	config.root = "./www";
+	config.root = "./srcs/www";
 
 	Location locRoot;
 	locRoot.path = "/";
-	locRoot.root = "./www";
+	locRoot.root = "./srcs/www";
 	locRoot.methods.push_back("GET");
 	locRoot.index = "index.html";
 	config.locations.push_back(locRoot);
