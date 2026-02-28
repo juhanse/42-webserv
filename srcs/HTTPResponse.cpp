@@ -83,6 +83,25 @@ void HTTPResponse::setContentType(const std::string& path) {
 }
 
 void HTTPResponse::generateErrorPage(int code, const ServerConfig& config) {
-	(void)code;
-	(void)config;
+	setStatusCode(code);
+	
+	std::map<int, std::string>::const_iterator it = config.error_pages.find(code);
+	
+	if (it != config.error_pages.end()) {
+		std::ifstream file(it->second.c_str());
+
+		if (file.is_open()) {
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			setBody(buffer.str());
+			setHeader("Content-Type", "text/html");
+			return ;
+		}
+	}
+
+	std::stringstream ss;
+	ss << "<html><body><h1>Error " << code << "</h1><p>" 
+	<< _getStatusMessage(code) << "</p></body></html>";
+	setBody(ss.str());
+	setHeader("Content-Type", "text/html");
 }
