@@ -115,6 +115,34 @@ HTTPResponse ResponseGenerator::_handleStatic(const HTTPRequest& req, const Loca
 	return res;
 }
 
+HTTPResponse ResponseGenerator::_handleCGI(const HTTPRequest& req, const Location& loc, const ServerConfig& config) {
+	HTTPResponse res;
+
+	std::string scriptPath = loc.root + req.getPath();
+
+	// Check si le script existe
+	struct stat s;
+	if (stat(scriptPath.c_str(), &s) != 0) {
+		res.generateErrorPage(404, config);
+		return res;
+	}
+
+	// TODO A : Créer les variables d'environnement (char**)
+	// TODO B : Créer les pipes ( int fd_in[2], fd_out[2] )
+	// TODO C : fork()
+	// if (pid == 0) {
+	//      C'est l'enfant : dup2 des pipes, puis execve(loc.cgi_path, args, env)
+	//      exit(1); si execve échoue
+	// } 
+	// else {
+	//      C'est le parent : write() le body, waitpid(), puis read() la réponse
+	// }
+	// TODO D : Parser la réponse brute du CGI et remplir 'res'
+
+	res.generateErrorPage(500, config);
+	return res;
+}
+
 HTTPResponse ResponseGenerator::_handlePostUpload(const HTTPRequest& req, const Location& loc, const ServerConfig& config) {
 	HTTPResponse res;
 	std::string fullPath = loc.root + req.getPath();
