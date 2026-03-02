@@ -114,3 +114,40 @@ HTTPResponse ResponseGenerator::_handleStatic(const HTTPRequest& req, const Loca
 	
 	return res;
 }
+
+HTTPResponse ResponseGenerator::_handlePostUpload(const HTTPRequest& req, const Location& loc, const ServerConfig& config) {
+	HTTPResponse res;
+	std::string fullPath = loc.root + req.getPath();
+
+	struct stat s;
+	
+	// Check si le chemin demandé est un dossier existant
+	// Impossible d'écraser un dossier avec le body de la requête
+	if (stat(fullPath.c_str(), &s) == 0 && S_ISDIR(s.st_mode)) {
+		res.generateErrorPage(403, config);
+		return res;
+	}
+
+	// Création ou écrasement du fichier en mode binaire
+	std::ofstream file(fullPath.c_str(), std::ios::out | std::ios::binary);
+	
+	// Si l'ouverture échoue
+	if (!file.is_open()) {
+		res.generateErrorPage(500, config);
+		return res;
+	}
+
+	file << req.getBody();
+	// Le RAII fermera le fichier automatiquement à la fin du bloc, 
+	// mais on peut le faire explicitement par clarté.
+	file.close();
+
+	// Réponse
+	res.setStatusCode(201);
+
+	std::string html = "<html><body><h1>201 Created</h1><p>Fichier uploade avec succes !</p></body></html>";
+	res.setBody(html);
+	res.setHeader("Content-Type", "text/html");
+
+	return res;
+}
