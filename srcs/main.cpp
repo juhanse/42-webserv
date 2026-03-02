@@ -26,22 +26,36 @@ int main(int ac, char **av) {
 	locRoot.index = "index.html";
 	config.locations.push_back(locRoot);
 
+    Location locTraitement;
+    locTraitement.path = "/traitement";
+    locTraitement.root = "./srcs/www/uploads";
+    locTraitement.methods.push_back("POST");
+    config.locations.push_back(locTraitement);
+
 	Location locCgi;
 	locCgi.path = "/cgi-bin";
-	locCgi.root = "./www/cgi-bin";
+	locCgi.root = "./srcs/www/cgi-bin";
 	locCgi.methods.push_back("GET");
 	locCgi.methods.push_back("POST");
 	locCgi.cgi_ext = ".py";
 	locCgi.cgi_path = "/usr/bin/python3";
 	config.locations.push_back(locCgi);
 
-	// Request
-	std::string raw = "GET /index.html HTTP/1.0\r\n"
-					"Host: localhost\r\n"
-					"\r\n";
+	// Mock request
+    std::string rawGet = "GET / HTTP/1.0\r\n"
+			"Host: localhost\r\n"
+			"Content-Type: application/x-www-form-urlencoded\r\n"
+			"Content-Length: 33\r\n";
 
-	HTTPRequest req;
-	req.parse(raw);
+	std::string rawPost = "POST /traitement HTTP/1.0\r\n"
+			"Host: localhost\r\n"
+			"Content-Type: application/x-www-form-urlencoded\r\n"
+			"Content-Length: 33\r\n"
+			"\r\n"
+			"utilisateur=juhanse&message=Coucou";
+
+    HTTPRequest req;
+    req.parse(rawPost);
 
 	std::cout << "--- Requête Reçue ---" << std::endl;
 	std::cout << "Méthode : " << req.getMethod() << " | Path : " << req.getPath() << std::endl;
