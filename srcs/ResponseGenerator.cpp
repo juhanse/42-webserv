@@ -20,7 +20,6 @@ const Location* ResponseGenerator::_matchLocation(const std::string& requestPath
 		}
 	}
 
-	// SÉCURITÉ : Si aucune location ne correspond, on renvoie NULL
 	if (bestMatchIdx == -1) {
 		return NULL; 
 	}
@@ -29,39 +28,59 @@ const Location* ResponseGenerator::_matchLocation(const std::string& requestPath
 	return &config.locations[bestMatchIdx];
 }
 
+std::string ResponseGenerator::_readFile(const std::string& path) {
+	// Ouverture en mode binaire (pour images/fichiers compilés)
+	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
+	if (!file) {
+		return "";
+	}
+
+	// Lecture en bloc optimisée
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+
+	return buffer.str();
+}
+
 HTTPResponse ResponseGenerator::generate(const HTTPRequest& req, const ServerConfig& config) {
-	HTTPResponse res;
+    HTTPResponse res;
 
-	// 1. Trouver la Location (On récupère un pointeur)
-	const Location* locPtr = _matchLocation(req.getPath(), config);
-	if (locPtr == NULL) {
-		res.generateErrorPage(404, config);
-		return res;
-	}
+    // 1. Trouver la Location
+    const Location* locPtr = _matchLocation(req.getPath(), config);
+    if (locPtr == NULL) {
+        res.generateErrorPage(404, config);
+        return res;
+    }
+    const Location& loc = *locPtr;
 
-	// On déréférence le pointeur pour une utilisation plus simple ensuite
-	const Location& loc = *locPtr;
+    // 2. Check autorisations
+    bool allowed = false;
+    for (size_t i = 0; i < loc.methods.size(); ++i) {
+        if (loc.methods[i] == req.getMethod()) {
+            allowed = true;
+            break;
+        }
+    }
+    if (!allowed) {
+        res.generateErrorPage(405, config);
+        return res;
+    }
 
-	// 2. Vérifier si la méthode est autorisée
-	bool allowed = false;
-	for (size_t i = 0; i < loc.methods.size(); ++i) {
-		if (loc.methods[i] == req.getMethod()) {
-			allowed = true;
-			break;
-		}
-	}
+    // 3. L'aiguillage
+    bool isCGI = !loc.cgi_ext.empty() && (req.getPath().find(loc.cgi_ext) != std::string::npos);
 
-	if (!allowed) {
-		res.generateErrorPage(405, config);
-		return res;
-	}
+    if (isCGI) {
+        return _handleCGI(req, loc, config);
+    }
 
-	// 3. Détecter si c'est un CGI (commenté pour l'instant)
-	// if (!loc.cgi_ext.empty() && req.getPath().find(loc.cgi_ext) != std::string::npos) {
-	//     return _handleCGI(req, loc, config); // N'oublie pas de passer config ici aussi plus tard
-	// }
+    if (req.getMethod() == "POST") {
+        return _handlePostUpload(req, loc, config);
+    }
+    else if (req.getMethod() == "DELETE") {
+        return _handleDelete(req, loc, config);
+    }
 
-	return _handleStatic(req, loc, config);
+    return _handleStatic(req, loc, config);
 }
 
 HTTPResponse ResponseGenerator::_handleStatic(const HTTPRequest& req, const Location& loc, const ServerConfig& config) {
@@ -94,18 +113,4 @@ HTTPResponse ResponseGenerator::_handleStatic(const HTTPRequest& req, const Loca
 	res.setContentType(fullPath);
 	
 	return res;
-}
-
-std::string ResponseGenerator::_readFile(const std::string& path) {
-	// Ouverture en mode binaire (pour images/fichiers compilés)
-	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
-	if (!file) {
-		return "";
-	}
-
-	// Lecture en bloc optimisée
-	std::stringstream buffer;
-	buffer << file.rdbuf();
-
-	return buffer.str();
 }
