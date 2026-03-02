@@ -151,3 +151,30 @@ HTTPResponse ResponseGenerator::_handlePostUpload(const HTTPRequest& req, const 
 
 	return res;
 }
+
+HTTPResponse ResponseGenerator::_handleDelete(const HTTPRequest& req, const Location& loc, const ServerConfig& config) {
+    HTTPResponse res;
+    std::string fullPath = loc.root + req.getPath();
+
+    struct stat s;
+    
+    // Check si le fichier existe
+    if (stat(fullPath.c_str(), &s) != 0) {
+        res.generateErrorPage(404, config);
+        return res;
+    }
+
+    // Check si c'est un dossier
+    if (S_ISDIR(s.st_mode)) {
+        res.generateErrorPage(403, config);
+        return res;
+    }
+
+    if (std::remove(fullPath.c_str()) == 0) {
+        res.setStatusCode(204); // "No Content" -> Code standard pour un DELETE réussi et pas besoin de body
+    } else {
+        res.generateErrorPage(403, config);
+    }
+
+    return res;
+}
