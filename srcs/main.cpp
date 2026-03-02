@@ -9,7 +9,7 @@ int main(int ac, char **av) {
 
 	// std::cout << av[1] << std::endl;
 
-	ServerConfig	testing = {8080};
+	ServerConfig	testing = {8080, 50}; //use new to store in other objects
 	std::vector<ServerConfig*> configs;
 	configs.push_back(&testing);
 

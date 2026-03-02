@@ -4,8 +4,9 @@
 #include <map>
 #include <sstream>
 
-class HTTPRequest {
+class HttpRequest {
 	private:
+		size_t								_contentLength;
 		std::string							_method;
 		std::string							_path;
 		std::string							_query;
@@ -14,14 +15,19 @@ class HTTPRequest {
 		std::map<std::string, std::string>	_headers;
 
 	public:
-		HTTPRequest();
-		~HTTPRequest();
+		HttpRequest();
+		~HttpRequest();
 
 		void parse(const std::string& rawData);
 
-		const std::string& getMethod() const { return _method; };
-		const std::string& getPath() const { return _path; };
-		const std::string& getQuery() const { return _query; };
-		const std::string& getProtocol() const { return _protocol; };
-		const std::string& getBody() const { return _body; };
+		const size_t&		getContentLength() const {return _contentLength; };
+		const std::string&	getMethod() const { return _method; };
+		const std::string&	getPath() const { return _path; };
+		const std::string&	getQuery() const { return _query; };
+		const std::string&	getProtocol() const { return _protocol; };
+		const std::string&	getBody() const { return _body; };
+
+		void				setMethod(std::string token);
+		void				setContentLength(std::string token);
+
 };

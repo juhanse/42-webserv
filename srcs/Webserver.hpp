@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Webserver.hpp                                      :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ade-woel <ade-woel@student.42belgium.be    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/10 15:48:25 by ade-woel          #+#    #+#             */
-/*   Updated: 2026/02/24 12:57:29 by ade-woel         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
 #include <map>
@@ -25,18 +13,19 @@
 
 class	Webserver {
 	private:
-		std::vector<pollfd>				_pollWatch;		//un tableau de tous les fds a surveiller par poll()
-		std::vector<ServerConfig*>		_configs;		//toutes les configs serveur detectees
+		std::vector<pollfd>				_pollWatch;		//array of fds under poll's watch
+		std::vector<ServerConfig*>		_configs;		//array of server configs
 		
-		std::map<int, Client*>			_clients;		//key: connect fd ; value: Client associe
-		std::map<int, ServerConfig*>	_listenFds;		//key: listen fd ; value: config associee
+		std::map<int, Client*>			_clients;		//key: Client connect fd ; value: associated Client
+		std::map<int, ServerConfig*>	_listenFds;		//key: Server listen fd ; value: associated config
 
-		int		newListenSock(int port);
-		int		setNonBlock(int fd);
+		void	closeClient(int fd);
 		bool	isListenSock(int fd);
 		void	newClient(int listFd);
-		void	closeClient(int fd);
-		void	sendToWatchList(int fd); //pollWatchThis?
+		int		newListenSock(int port);
+		void	receiveRequest(int fd);
+		void	sendToWatchList(int fd);
+		int		setNonBlock(int fd);
 
 	public:
 		Webserver(std::vector<ServerConfig*>);

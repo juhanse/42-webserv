@@ -15,9 +15,9 @@ struct ServerConfig {
 	// std::vector<std::string>	index;
 	// bool						index_set;
 
-	// size_t						client_max_body_size;
+	size_t						client_max_body_size;
 	// std::map<int, std::string>	error_page;
 	
 	//std::vector<Location>	locations;
-	//Server();
+	//ServerConfig(): port(8080), client_max_body_size(10) {};
 };

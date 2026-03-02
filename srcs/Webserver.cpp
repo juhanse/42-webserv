@@ -1,32 +1,15 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Webserver.cpp                                      :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ade-woel <ade-woel@student.42belgium.be    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/14 13:03:46 by ade-woel          #+#    #+#             */
-/*   Updated: 2026/02/24 16:07:27 by ade-woel         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Webserver.hpp"
 
 Webserver::Webserver(std::vector<ServerConfig*> configs): _configs(configs) {}
 
 Webserver::~Webserver() {
-	//delete les clients
-
-	    //     for (std::map<int, Client*>::iterator it = _clients.begin();
-        //      it != _clients.end(); ++it) {
-        //     delete it->second;
-        // }
-        // _clients.clear();
+	for (std::map<int, Client*>::iterator it = _clients.begin(); 
+			it != _clients.end(); ++it) //check post or pre inc
+				delete it->second;
+			_clients.clear();
 	
-	//close all fds
-	    //     for (size_t i = 0; i < _poll_fds.size(); i++) {
-        //     close(_poll_fds[i].fd);
-        // }
+	for (size_t i = 0; i < _pollWatch.size(); i++)
+		close(_pollWatch[i].fd);
 }
 
 int	Webserver::setNonBlock(int fd) {
@@ -38,9 +21,6 @@ int	Webserver::setNonBlock(int fd) {
 
 void	Webserver::sendToWatchList(int fd) {
 	pollfd	newFd = {fd, POLLIN, 0};
-	// newFd.fd = fd;
-	// newFd.events = POLLIN;
-	// newFd.revents = 0;
 	_pollWatch.push_back(newFd);
 }
 
@@ -80,14 +60,13 @@ void	Webserver::newClient(int listFd) {
 
 	struct sockaddr_in	client_addr;
 	socklen_t sockLen = sizeof(client_addr);
-	int	client_fd = accept(listFd, reinterpret_cast<sockaddr *>(&client_addr), &sockLen);
-	//to protect ??
+	int	client_fd = accept(listFd, reinterpret_cast<sockaddr *>(&client_addr), &sockLen); //protect it?
 	setNonBlock(client_fd); //define what to do in case of failure?
 
-    // char* ip = inet_ntoa(client_addr.sin_addr);
-    // int port = ntohs(client_addr.sin_port);
+	// char* ip = inet_ntoa(client_addr.sin_addr);
+	// int port = ntohs(client_addr.sin_port);
 	Client*	client = new Client(client_fd); //add ip, port, config ?
-    _clients[client_fd] = client;
+	_clients[client_fd] = client;
 	
 	sendToWatchList(client_fd);
 	std::cout << "New client " << client_fd << " connected" << std::endl;
@@ -126,6 +105,21 @@ int Webserver::newServ(ServerConfig* config) {
 	return (0);
 }
 
+void	Webserver::receiveRequest(int fd) {
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	if (it == _clients.end())
+		return ;
+	
+	Client* client = it->second;
+	client->readRequest();
+
+	//passer en process request ici? status du client + parsing http
+	//passer en POLLOUT pour envoyer la reponse si le status est en WRITING?
+	//si client status DONE - on close le client
+
+}
+
+
 void	Webserver::runServ() {
 	std::cout << "DEBUG - Starting poll loop" << std::endl;
 	while (true) {
@@ -134,7 +128,7 @@ void	Webserver::runServ() {
 		if (isReady == -1) {
 			if (errno == EINTR) //Signal or CGI disturbed poll -> relaunch loop
 				continue ;
-			perror("poll()"); //something else bad happened -> handle it
+			perror("poll()"); //something else bad happened
 			break ;
 		}
 
@@ -152,7 +146,7 @@ void	Webserver::runServ() {
 
 				if (revents & (POLLHUP | POLLERR | POLLNVAL)) {
 					if (!isListen) {
-						closeClient(fd);
+						closeClient(fd); //+ update poll watch list?
 						continue ;
 					}
 					// else {
@@ -163,17 +157,20 @@ void	Webserver::runServ() {
 					if (isListen)
 						newClient(fd);
 					else {
-						//receiveRequest();
-						//client has something to say
-						//recv + parse HTTP request
+						receiveRequest(fd);
+						if (_clients[fd]->getStatus() == DONE) {
+							closeClient(fd);
+							continue ;
+						}
+
 						//switch revents to POLLOUT
 					}
 				}
-
 				// else if (revents & POLLOUT) {
-				// 	//
+				// sendResponse(fd);
 				// }
 			}
 		}
 	}
 }
+
