@@ -10,12 +10,13 @@
 
 class ResponseGenerator {
 	private:
-		HTTPResponse _handleStatic(const HTTPRequest& req, const Location& loc, const ServerConfig& config);
-		HTTPResponse _handleCGI(const HTTPRequest& req, const Location& loc);
-		HTTPResponse _handleDelete(const std::string& fullPath);
-
 		const Location* _matchLocation(const std::string& requestPath, const ServerConfig& config);
 		std::string _readFile(const std::string& path);
+
+		HTTPResponse _handleStatic(const HTTPRequest& req, const Location& loc, const ServerConfig& config);
+		HTTPResponse _handleCGI(const HTTPRequest& req, const Location& loc, const ServerConfig& config);
+		HTTPResponse _handleDelete(const HTTPRequest& req, const Location& loc, const ServerConfig& config);
+		HTTPResponse _handlePostUpload(const HTTPRequest& req, const Location& loc, const ServerConfig& config);
 
 	public:
 		ResponseGenerator();
