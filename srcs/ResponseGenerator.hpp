@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <sstream>
+#include <cstdio>
 
 class ResponseGenerator {
 	private:
