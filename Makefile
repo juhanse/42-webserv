@@ -10,7 +10,12 @@ COLOUR_END=\033[0m
 PATH_SRCS = srcs/
 PATH_OBJS = objs/
 
-SRC = main.cpp HttpRequest.cpp HttpResponse.cpp ResponseGenerator.cpp
+SRC =	Client.cpp				\
+		HttpRequest.cpp			\
+		HttpResponse.cpp		\
+		main.cpp				\
+		ResponseGenerator.cpp	\
+		Webserver.cpp			\
 
 SRCS = $(addprefix $(PATH_SRCS), $(SRC))
 OBJS = $(addprefix $(PATH_OBJS), $(SRC:.cpp=.o))
