@@ -138,7 +138,7 @@ void	Webserver::receiveRequest(int fd) {
 		client->readRequest();
 
 	if (client->getStatus() == PROCESSING)
-		client->processRequest(); //full parsing HTTP
+		client->processRequest(); //full parsing Http
 
 	if (client->getStatus() == WRITING)
 		switchToPollout(fd);

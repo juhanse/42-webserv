@@ -1,8 +1,8 @@
 #pragma once
 
-#include "HTTPRequest.hpp"
-#include "HTTPResponse.hpp"
-#include "Config.hpp"
+#include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
+#include "ServerConfig.hpp"
 #include <string>
 #include <sys/stat.h>
 #include <fstream>
@@ -14,14 +14,14 @@ class ResponseGenerator {
 		const Location* _matchLocation(const std::string& requestPath, const ServerConfig& config);
 		std::string _readFile(const std::string& path);
 
-		HTTPResponse _handleStatic(const HTTPRequest& req, const Location& loc, const ServerConfig& config);
-		HTTPResponse _handleCGI(const HTTPRequest& req, const Location& loc, const ServerConfig& config);
-		HTTPResponse _handleDelete(const HTTPRequest& req, const Location& loc, const ServerConfig& config);
-		HTTPResponse _handlePostUpload(const HTTPRequest& req, const Location& loc, const ServerConfig& config);
+		HttpResponse _handleStatic(const HttpRequest& req, const Location& loc, const ServerConfig& config);
+		HttpResponse _handleCGI(const HttpRequest& req, const Location& loc, const ServerConfig& config);
+		HttpResponse _handleDelete(const HttpRequest& req, const Location& loc, const ServerConfig& config);
+		HttpResponse _handlePostUpload(const HttpRequest& req, const Location& loc, const ServerConfig& config);
 
 	public:
 		ResponseGenerator();
 		~ResponseGenerator();
 
-		HTTPResponse generate(const HTTPRequest& req, const ServerConfig& config);
+		HttpResponse generate(const HttpRequest& req, const ServerConfig& config);
 };

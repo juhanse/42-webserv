@@ -82,7 +82,7 @@ void HttpResponse::setContentType(const std::string& path) {
 		setHeader("Content-Type", "text/plain");
 }
 
-void HTTPResponse::generateErrorPage(int code, const ServerConfig& config) {
+void HttpResponse::generateErrorPage(int code, const ServerConfig& config) {
 	setStatusCode(code);
 	
 	std::map<int, std::string>::const_iterator it = config.error_pages.find(code);

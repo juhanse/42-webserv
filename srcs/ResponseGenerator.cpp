@@ -42,8 +42,8 @@ std::string ResponseGenerator::_readFile(const std::string& path) {
 	return buffer.str();
 }
 
-HTTPResponse ResponseGenerator::generate(const HTTPRequest& req, const ServerConfig& config) {
-    HTTPResponse res;
+HttpResponse ResponseGenerator::generate(const HttpRequest& req, const ServerConfig& config) {
+    HttpResponse res;
 
     // 1. Trouver la Location
     const Location* locPtr = _matchLocation(req.getPath(), config);
@@ -83,8 +83,8 @@ HTTPResponse ResponseGenerator::generate(const HTTPRequest& req, const ServerCon
     return _handleStatic(req, loc, config);
 }
 
-HTTPResponse ResponseGenerator::_handleStatic(const HTTPRequest& req, const Location& loc, const ServerConfig& config) {
-	HTTPResponse res;
+HttpResponse ResponseGenerator::_handleStatic(const HttpRequest& req, const Location& loc, const ServerConfig& config) {
+	HttpResponse res;
 	std::string fullPath = loc.root + req.getPath();
 
 	struct stat s;
@@ -115,8 +115,8 @@ HTTPResponse ResponseGenerator::_handleStatic(const HTTPRequest& req, const Loca
 	return res;
 }
 
-HTTPResponse ResponseGenerator::_handleCGI(const HTTPRequest& req, const Location& loc, const ServerConfig& config) {
-	HTTPResponse res;
+HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const Location& loc, const ServerConfig& config) {
+	HttpResponse res;
 
 	std::string scriptPath = loc.root + req.getPath();
 
@@ -143,8 +143,8 @@ HTTPResponse ResponseGenerator::_handleCGI(const HTTPRequest& req, const Locatio
 	return res;
 }
 
-HTTPResponse ResponseGenerator::_handlePostUpload(const HTTPRequest& req, const Location& loc, const ServerConfig& config) {
-	HTTPResponse res;
+HttpResponse ResponseGenerator::_handlePostUpload(const HttpRequest& req, const Location& loc, const ServerConfig& config) {
+	HttpResponse res;
 	std::string fullPath = loc.root + req.getPath();
 
 	struct stat s;
@@ -180,8 +180,8 @@ HTTPResponse ResponseGenerator::_handlePostUpload(const HTTPRequest& req, const 
 	return res;
 }
 
-HTTPResponse ResponseGenerator::_handleDelete(const HTTPRequest& req, const Location& loc, const ServerConfig& config) {
-    HTTPResponse res;
+HttpResponse ResponseGenerator::_handleDelete(const HttpRequest& req, const Location& loc, const ServerConfig& config) {
+    HttpResponse res;
     std::string fullPath = loc.root + req.getPath();
 
     struct stat s;
