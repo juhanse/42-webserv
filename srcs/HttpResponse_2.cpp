@@ -82,26 +82,26 @@ void HttpResponse::setContentType(const std::string& path) {
 		setHeader("Content-Type", "text/plain");
 }
 
-// void HttpResponse::generateErrorPage(int code, const ServerConfig& config) {
-// 	setStatusCode(code);
+void HTTPResponse::generateErrorPage(int code, const ServerConfig& config) {
+	setStatusCode(code);
 	
-// 	std::map<int, std::string>::const_iterator it = config.error_pages.find(code);
+	std::map<int, std::string>::const_iterator it = config.error_pages.find(code);
 	
-// 	if (it != config.error_pages.end()) {
-// 		std::ifstream file(it->second.c_str());
+	if (it != config.error_pages.end()) {
+		std::ifstream file(it->second.c_str());
 
-// 		if (file.is_open()) {
-// 			std::stringstream buffer;
-// 			buffer << file.rdbuf();
-// 			setBody(buffer.str());
-// 			setHeader("Content-Type", "text/html");
-// 			return ;
-// 		}
-// 	}
+		if (file.is_open()) {
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			setBody(buffer.str());
+			setHeader("Content-Type", "text/html");
+			return ;
+		}
+	}
 
-// 	std::stringstream ss;
-// 	ss << "<html><body><h1>Error " << code << "</h1><p>" 
-// 	<< _getStatusMessage(code) << "</p></body></html>";
-// 	setBody(ss.str());
-// 	setHeader("Content-Type", "text/html");
-// }
+	std::stringstream ss;
+	ss << "<html><body><h1>Error " << code << "</h1><p>" 
+	<< _getStatusMessage(code) << "</p></body></html>";
+	setBody(ss.str());
+	setHeader("Content-Type", "text/html");
+}
