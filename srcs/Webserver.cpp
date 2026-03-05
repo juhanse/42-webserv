@@ -67,7 +67,7 @@ void	Webserver::newClient(int listFd) {
 	// int port = ntohs(client_addr.sin_port);
 	Client*	client = new Client(client_fd); //add ip, port, config ?
 	_clients[client_fd] = client;
-	
+
 	sendToWatchList(client_fd);
 	std::cout << "New client " << client_fd << " connected" << std::endl;
 }
@@ -105,23 +105,60 @@ int Webserver::newServ(ServerConfig* config) {
 	return (0);
 }
 
+void	Webserver::switchToPollout(int fd) {
+	for (size_t i = 0; i < _pollWatch.size(); i++) {
+		if (_pollWatch[i].fd == fd) {
+			_pollWatch[i].events = POLLOUT;
+			return ;
+		}
+	}
+}
+
+void	Webserver::sendResponse(int fd) {
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	if (it == _clients.end())
+		return ;
+
+	Client* client = it->second;
+	client->writeResponse();
+	if (_clients[fd]->getStatus() == DONE)
+		closeClient(fd);
+}
+
 void	Webserver::receiveRequest(int fd) {
 	std::map<int, Client*>::iterator it = _clients.find(fd);
 	if (it == _clients.end())
 		return ;
 	
 	Client* client = it->second;
-	client->readRequest();
+	if (client->getStatus() == DONE)
+		closeClient(fd);
 
-	//passer en process request ici? status du client + parsing http
-	//passer en POLLOUT pour envoyer la reponse si le status est en WRITING?
-	//si client status DONE - on close le client
+	if (client->getStatus() == READING)
+		client->readRequest();
 
+	if (client->getStatus() == PROCESSING)
+		client->processRequest(); //full parsing HTTP
+
+	if (client->getStatus() == WRITING)
+		switchToPollout(fd);
 }
 
+void	Webserver::closeTimedOut() {
+	for (std::map<int, Client*>::iterator it = _clients.begin();
+		it != _clients.end(); ) {
+			if (it->second->hasTimedOut()) {
+				std::cout << "Client " << it->first << " has timed out" << std::endl;
+				int fd = it->first;
+				++it;
+				closeClient(fd);
+			}
+			else
+				++it;
+		}
+}
 
 void	Webserver::runServ() {
-	std::cout << "DEBUG - Starting poll loop" << std::endl;
 	while (true) {
 		int isReady = poll(_pollWatch.data(), _pollWatch.size(), 3000);
 
@@ -132,8 +169,10 @@ void	Webserver::runServ() {
 			break ;
 		}
 
-		if (isReady == 0)
+		if (isReady == 0) {
+			closeTimedOut();
 			continue ;
+		}
 
 		else {
 			for (int i = 0; i < _pollWatch.size(); i++) {
@@ -146,31 +185,21 @@ void	Webserver::runServ() {
 
 				if (revents & (POLLHUP | POLLERR | POLLNVAL)) {
 					if (!isListen) {
-						closeClient(fd); //+ update poll watch list?
+						closeClient(fd);
 						continue ;
 					}
-					// else {
-					// 	//clean server exit OR stop program?
-					// }
 				}
+
 				if (revents & POLLIN) {
 					if (isListen)
 						newClient(fd);
-					else {
+					else
 						receiveRequest(fd);
-						if (_clients[fd]->getStatus() == DONE) {
-							closeClient(fd);
-							continue ;
-						}
-
-						//switch revents to POLLOUT
-					}
 				}
-				// else if (revents & POLLOUT) {
-				// sendResponse(fd);
-				// }
+
+				else if (revents & POLLOUT)
+					sendResponse(fd);
 			}
 		}
 	}
 }
-

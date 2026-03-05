@@ -20,12 +20,11 @@ int main(int ac, char **av) {
 	for (size_t i = 0; i < configs.size(); i++) {
 		if (webserv.newServ(configs[i]) == -1) {
 			std::cerr << "Servers couldn't init" << std::endl;
-			//clean and free ?
-			//if previous servers are ON, loop back to close the other fds?
+			//clean and free? in webserv destructor?
 			return (1);
 		}
 	}
 	webserv.runServ();
-	//clean and free
+	//clean and free? in webserv destructor?
 	return (0);
 }

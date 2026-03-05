@@ -20,12 +20,15 @@ class	Webserver {
 		std::map<int, ServerConfig*>	_listenFds;		//key: Server listen fd ; value: associated config
 
 		void	closeClient(int fd);
+		void	closeTimedOut();
 		bool	isListenSock(int fd);
 		void	newClient(int listFd);
 		int		newListenSock(int port);
 		void	receiveRequest(int fd);
+		void	sendResponse(int fd);
 		void	sendToWatchList(int fd);
 		int		setNonBlock(int fd);
+		void	switchToPollout(int fd);
 
 	public:
 		Webserver(std::vector<ServerConfig*>);

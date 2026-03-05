@@ -1,6 +1,9 @@
 #include "Client.hpp"
 
-Client::Client(int fd): _fd(fd), _status(READING) {
+Client::Client(int fd):	_fd(fd), 
+						_lastActive(time(NULL)),
+						_status(READING)
+{
 	_request = new HttpRequest();
 	_response = new HttpResponse();
 }
@@ -10,8 +13,16 @@ Client::~Client() {
 	delete	_response;
 }
 
-int	Client::getStatus() const {
+int		Client::getStatus() const {
 	return (_status);
+}
+
+void	Client::resetActivity() {
+	_lastActive = time(NULL);
+}
+
+bool	Client::hasTimedOut() const {
+	return (time(NULL) - _lastActive > TIMEOUT);
 }
 
 bool	Client::bodyIsFull(size_t bodyStart, size_t expectedBody) const {
@@ -22,15 +33,11 @@ bool	Client::bodyIsFull(size_t bodyStart, size_t expectedBody) const {
 }
 
 int	Client::findMethod() const {
-	std::istringstream	stream(_recvBuff);
-	std::string			type;
-
-	stream >> type;
-	if (type.compare("GET") == 0)
+	if (_recvBuff.compare(0, 4, "GET ") == 0)
 		return (GET);
-	if (type.compare("DELETE") == 0)
+	if (_recvBuff.compare(0, 7, "DELETE ") == 0)
 		return (DELETE);
-	if (type.compare("POST") == 0)
+	if (_recvBuff.compare(0, 5, "POST ") == 0)
 		return (POST);
 	else
 		return (UNKNOWN);
@@ -84,7 +91,7 @@ bool	Client::isCompleted() {
 		case POST:
 			std::cout << "POST detected" << std::endl;
 			headers = _recvBuff.substr(0, endTag);
-			if (!findContentLength(headers)) //switch to WRITING?
+			if (!findContentLength(headers))
 				return (_response->setStatusCode(411), true); //Length missing 400 vs 411?
 			// if (_request->getContentLength() > _config->client_max_body_size)
 			// 	return (_response->setStatusCode(400), true); //400 vs 413 Payload too large?
@@ -92,10 +99,24 @@ bool	Client::isCompleted() {
 				return (true);
 			return (false);	
 		case UNKNOWN:
+		default:
 			//more precise detection? 405 vs 501
 			std::cout << "Unknown request type" << std::endl;
-			return(_response->setStatusCode(501), true); //Not implemented
+			return(_response->setStatusCode(501), true);
 	}
+}
+
+void	Client::processRequest() {
+	//if (_response->getStatusCode() != 200)
+		//generate response error + status WRITING
+
+	//full parsing ici -> if parsing no error
+		//handle request selon si GET, POST ou DELETE
+	//else
+		//status code aura ete maj dans le parsing 
+		//generate response error
+
+	_status = WRITING;
 }
 
 void	Client::readRequest() {
@@ -108,19 +129,26 @@ void	Client::readRequest() {
 		_status = DONE;
 	}
 	else if (bytes > 0) {
+		resetActivity();
 		_recvBuff.append(buffer, bytes);
 
 		if (isCompleted()) {
-			_status = PROCESSING; 
-			std::cout << _recvBuff << std::endl;
-			//switch status in isCompleted? Either PROCESSING or WRITING
-			//parsing Http + response
+			_status = PROCESSING;
+			//std::cout << _recvBuff << std::endl;
 		}
 	}
 	else {
 		perror("recv()");
 		_status = DONE;
 	}
-	//ou integrer le client time out?
 }
 
+void	Client::writeResponse() {
+	if (_sendBuff.empty()) {
+		_sendBuff = _response->getRawResponse();
+		_sendOffset = 0;
+	}
+
+	size_t	leftover = _sendBuff.size() - _sendOffset;
+	size_t	bytes = send(_fd, _sendBuff.c_str(), leftover, 0); //check flags
+}
