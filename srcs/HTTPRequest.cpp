@@ -1,0 +1,37 @@
+#include "HTTPRequest.hpp"
+
+HTTPRequest::HTTPRequest() {}
+HTTPRequest::~HTTPRequest() {}
+
+void HTTPRequest::parse(const std::string& rawData) {
+	std::istringstream stream(rawData);
+	std::string line;
+
+	if (std::getline(stream, line)) {
+		std::istringstream lineStream(line);
+		lineStream >> _method >> _path >> _protocol;
+
+		size_t questionMarkPos = _path.find('?');
+		if (questionMarkPos != std::string::npos) {
+			_query = _path.substr(questionMarkPos + 1);
+			_path = _path.substr(0, questionMarkPos);
+		}
+	}
+
+	while (std::getline(stream, line) && line != "\r" && !line.empty()) {
+		size_t colonPos = line.find(':');
+		if (colonPos != std::string::npos) {
+			std::string key = line.substr(0, colonPos);
+			std::string value = line.substr(colonPos + 2);
+
+			if (!value.empty() && value[value.size() - 1] == '\r') {
+				value.erase(value.size() - 1);
+			}
+			_headers[key] = value;
+		}
+	}
+
+	std::stringstream bodyStream;
+	bodyStream << stream.rdbuf();
+	_body = bodyStream.str();
+}
