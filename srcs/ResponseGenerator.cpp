@@ -42,6 +42,47 @@ std::string ResponseGenerator::_readFile(const std::string& path) {
 	return buffer.str();
 }
 
+char** ResponseGenerator::_createCGIEnv(const HttpRequest& req, const Location& loc, const std::string& scriptPath) {
+	std::map<std::string, std::string> envMap;
+
+	envMap["REQUEST_METHOD"] = req.getMethod();
+	envMap["SCRIPT_FILENAME"] = scriptPath;
+	envMap["SERVER_PROTOCOL"] = "HTTP/1.0";
+	envMap["PATH_INFO"] = req.getPath();
+	envMap["QUERY_STRING"] = req.getQuery();
+
+	if (req.getMethod() == "POST") {
+		std::stringstream ss;
+		ss << req.getContentLength();
+		envMap["CONTENT_LENGTH"] = ss.str();
+		envMap["CONTENT_TYPE"] = req.getHeader("Content-Type");
+	}
+
+	char** envp = new char*[envMap.size() + 1];
+	int i = 0;
+
+	for (std::map<std::string, std::string>::iterator it = envMap.begin(); it != envMap.end(); ++it) {
+		std::string envStr = it->first + "=" + it->second;
+
+		envp[i] = new char[envStr.length() + 1];
+		std::strcpy(envp[i], envStr.c_str());
+		i++;
+	}
+	envp[i] = NULL;
+
+	return envp;
+}
+
+void ResponseGenerator::_freeEnv(char** envp) {
+	if (!envp) return;
+
+	for (int i = 0; envp[i] != NULL; ++i) {
+		delete[] envp[i];
+	}
+
+	delete[] envp;
+}
+
 HttpResponse ResponseGenerator::generate(const HttpRequest& req, const ServerConfig& config) {
     HttpResponse res;
 
