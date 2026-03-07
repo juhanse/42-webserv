@@ -4,15 +4,6 @@ HttpRequest::HttpRequest() {}
 
 HttpRequest::~HttpRequest() {}
 
-void	HttpRequest::setMethod(std::string token) {
-	_method = token;
-}
-
-void	HttpRequest::setContentLength(std::string token) {
-	std::stringstream	ss(token);
-	ss >> _contentLength;
-}
-
 void	HttpRequest::parse(const std::string& rawData) {
 	std::istringstream stream(rawData);
 	std::string line;
@@ -44,4 +35,23 @@ void	HttpRequest::parse(const std::string& rawData) {
 	std::stringstream bodyStream;
 	bodyStream << stream.rdbuf();
 	_body = bodyStream.str();
+}
+
+void	HttpRequest::setMethod(std::string token) {
+	_method = token;
+}
+
+void	HttpRequest::setContentLength(std::string token) {
+	std::stringstream	ss(token);
+	ss >> _contentLength;
+}
+
+std::string HttpRequest::getHeader(const std::string& key) const {
+	std::map<std::string, std::string>::const_iterator it = _headers.find(key);
+
+	if (it != _headers.end()) {
+		return it->second;
+	}
+
+	return ""; 
 }
