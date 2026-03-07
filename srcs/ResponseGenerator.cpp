@@ -94,6 +94,9 @@ HttpResponse ResponseGenerator::_handleStatic(const HttpRequest& req, const Loca
 	}
 
 	if (S_ISDIR(s.st_mode)) {
+		if (fullPath[fullPath.length() - 1] != '/') {
+            fullPath += "/";
+        }
 		fullPath += "/" + loc.index;
 
 		if (stat(fullPath.c_str(), &s) != 0) {
