@@ -161,7 +161,6 @@ HttpResponse ResponseGenerator::_handleStatic(const HttpRequest& req, const Loca
 
 HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const Location& loc, const ServerConfig& config) {
 	HttpResponse res;
-
 	std::string scriptPath = loc.root + req.getPath();
 
 	// Check si le script existe
@@ -171,20 +170,65 @@ HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const Locatio
 		return res;
 	}
 
-	// TODO A : Créer les variables d'environnement (char**)
-	// TODO B : Créer les pipes ( int fd_in[2], fd_out[2] )
-	// TODO C : fork()
-	// if (pid == 0) {
-	//      C'est l'enfant : dup2 des pipes, puis execve(loc.cgi_path, args, env)
-	//      exit(1); si execve échoue
-	// } 
-	// else {
-	//      C'est le parent : write() le body, waitpid(), puis read() la réponse
-	// }
-	// TODO D : Parser la réponse brute du CGI et remplir 'res'
+	char** envp = _createCGIEnv(req, loc, scriptPath);
 
-	res.generateErrorPage(500, config);
-	return res;
+	// 3. Création des tuyaux (0 = lecture, 1 = écriture)
+	int pipe_in[2];  // Le serveur écrit dedans, Python lit
+	int pipe_out[2]; // Python écrit dedans, le serveur lit
+	if (pipe(pipe_in) == -1 || pipe(pipe_out) == -1) {
+		_freeEnv(envp);
+		res.generateErrorPage(500, config);
+		return res;
+	}
+
+	// 4. Clonage (Fork)
+	pid_t pid = fork();
+	if (pid == -1) {
+		_freeEnv(envp);
+		close(pipe_in[0]); close(pipe_in[1]);
+		close(pipe_out[0]); close(pipe_out[1]);
+		res.generateErrorPage(500, config);
+		return res;
+	}
+	// --- PROCESSUS ENFANT (PYTHON) ---
+	if (pid == 0) {
+		// Redirection des entrées/sorties standards
+		dup2(pipe_in[0], STDIN_FILENO);
+		dup2(pipe_out[1], STDOUT_FILENO);
+		// Fermeture des descripteurs inutiles pour l'enfant
+		close(pipe_in[0]); close(pipe_in[1]);
+		close(pipe_out[0]); close(pipe_out[1]);
+
+		char* args[3];
+		args[0] = const_cast<char*>(loc.cgi_path.c_str());
+		args[1] = const_cast<char*>(scriptPath.c_str());
+		args[2] = NULL;
+
+		execve(args[0], args, envp);
+		// Si execve échoue
+		_exit(1);
+	} 
+	// --- PROCESSUS PARENT (SERVEUR C++) ---
+	else {	
+		// Fermeture des côtés des tuyaux que le parent n'utilise pas
+		close(pipe_in[0]);
+		close(pipe_out[1]);
+
+		// PASSAGE EN NON-BLOQUANT (CRUCIAL POUR LE MULTI-CGI)
+		fcntl(pipe_in[1], F_SETFL, O_NONBLOCK);
+		fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
+
+		_freeEnv(envp);
+
+		// On configure une réponse temporaire pour passer le relais au Client
+		res.setStatusCode(100);
+
+		res.setCgiPid(pid);
+		res.setCgiFdIn(pipe_in[1]);
+		res.setCgiFdOut(pipe_out[0]);
+
+		return res;
+	}
 }
 
 HttpResponse ResponseGenerator::_handlePostUpload(const HttpRequest& req, const Location& loc, const ServerConfig& config) {
