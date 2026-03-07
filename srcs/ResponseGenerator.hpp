@@ -5,6 +5,9 @@
 #include "ServerConfig.hpp"
 #include <string>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/wait.h>
 #include <fstream>
 #include <sstream>
 #include <cstdio>
