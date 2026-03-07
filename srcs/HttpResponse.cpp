@@ -1,6 +1,6 @@
 #include "HttpResponse.hpp"
 
-HttpResponse::HttpResponse() : _status_code(200) {
+HttpResponse::HttpResponse() : _status_code(200), _cgiPid(-1), _cgiFdIn(-1), _cgiFdOut(-1) {
 	setHeader("Server", "Webserv/1.0");
 }
 
@@ -42,6 +42,10 @@ void HttpResponse::setBody(const std::string& content) {
 	ss << _body.size();
 	setHeader("Content-Length", ss.str());
 }
+
+void HttpResponse::setCgiPid(pid_t pid) { _cgiPid = pid; }
+void HttpResponse::setCgiFdIn(int fd) { _cgiFdIn = fd; }
+void HttpResponse::setCgiFdOut(int fd) { _cgiFdOut = fd; }
 
 std::string HttpResponse::getRawResponse() const {
 	std::stringstream res;
