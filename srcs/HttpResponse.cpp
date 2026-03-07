@@ -46,7 +46,7 @@ void HttpResponse::setBody(const std::string& content) {
 std::string HttpResponse::getRawResponse() const {
 	std::stringstream res;
 
-	res << "Http/1.0 " << _status_code << " " << _getStatusMessage(_status_code) << "\r\n";
+	res << "HTTP/1.0 " << _status_code << " " << _getStatusMessage(_status_code) << "\r\n";
 	
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it) {
 		res << it->first << ": " << it->second << "\r\n";
