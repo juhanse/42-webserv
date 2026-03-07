@@ -38,6 +38,8 @@ int main(int ac, char **av) {
 	locCgi.cgi_path = "/usr/bin/python3";
 	config.locations.push_back(locCgi);
 
+	config.error_pages[404] = "./srcs/www/404.html";
+
 	std::vector<ServerConfig*> configurations;
 	configurations.push_back(&config);
 
