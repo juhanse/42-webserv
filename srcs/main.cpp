@@ -31,7 +31,7 @@ int main(int ac, char **av) {
 
 	Location locCgi;
 	locCgi.path = "/cgi-bin";
-	locCgi.root = "./srcs/www/cgi-bin";
+	locCgi.root = "./srcs/www/";
 	locCgi.methods.push_back("GET");
 	locCgi.methods.push_back("POST");
 	locCgi.cgi_ext = ".py";
