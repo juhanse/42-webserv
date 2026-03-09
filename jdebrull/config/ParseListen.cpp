@@ -1,18 +1,6 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ParseListen.cpp                                    :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/22 14:02:34 by Jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/05 16:01:22 by jdebrull         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "ParseListen.hpp"
 
-static void	assignPort(const char* str, size_t& i, Server& serv)
+static void	assignPort(const char* str, size_t& i, ServerConfig& serv)
 {
 	int port = 0;
 
@@ -31,7 +19,7 @@ static void	assignPort(const char* str, size_t& i, Server& serv)
 	}
 	if (port < 1)
 		throw (std::runtime_error("Port can't be smaller than 1."));
-	serv.port = port;
+	serv.setPort(port);
 }
 
 static bool	checkIpAddress(const char *str)
@@ -70,7 +58,7 @@ static bool	checkIpAddress(const char *str)
 	return (dots == 3 && num != -1);
 }
 
-static void	checkIpPort(const char* str, Server& serv, size_t count)
+static void	checkIpPort(const char* str, ServerConfig& serv, size_t count)
 {
 	size_t i = 0;
 
@@ -94,7 +82,8 @@ static void	checkIpPort(const char* str, Server& serv, size_t count)
 			}
 			if (!checkIpAddress(str))
 				throw (std::runtime_error("Invalid ip address for listen directive."));
-			serv.host.assign(str, i);
+			std::string ip(str, i);
+			serv.setHost(ip);
 			i++;
 			assignPort(str, i, serv);
 		}
@@ -103,11 +92,10 @@ static void	checkIpPort(const char* str, Server& serv, size_t count)
 		throw (std::runtime_error("Wrong Ip address and port format."));
 }
 
-void	parseListen(std::vector<std::string>& tokens, size_t& i, Server& serv)
+void	parseListen(std::vector<std::string>& tokens, size_t& i, ServerConfig& serv, bool& listen_set)
 {
-	if (serv.listen_set)
+	if (listen_set)
 		throw (std::runtime_error("Multiple listen directives is not allowed."));
-	serv.listen_set = true;
 	i++;
 	if (i >= tokens.size() || tokens[i] == ";")
 		throw (std::runtime_error("Expected value after listen"));
@@ -128,4 +116,5 @@ void	parseListen(std::vector<std::string>& tokens, size_t& i, Server& serv)
 	if (i >= tokens.size() || tokens[i] != ";")
 		throw (std::runtime_error("Expected a ';' after listen directive."));
 	i++;
+	listen_set = true;
 }

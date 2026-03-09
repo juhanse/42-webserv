@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ParseServerName.cpp                                :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: jdebrull <jdebrull@student.s19.be>         +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/29 13:32:28 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/01/29 15:41:18 by jdebrull         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "ParseServerName.hpp"
 
 static bool	isValidServerName(const std::string& token)
@@ -26,7 +14,7 @@ static bool	isValidServerName(const std::string& token)
 	return true;
 }
 
-void	parseServerName(std::vector<std::string>& tokens, size_t& i, Server& serv)
+void	parseServerName(std::vector<std::string>& tokens, size_t& i, ServerConfig& serv)
 {
 	i++;
 	if (i >= tokens.size())
@@ -36,13 +24,13 @@ void	parseServerName(std::vector<std::string>& tokens, size_t& i, Server& serv)
 	{
 		if (!isValidServerName(tokens[i]))
 			throw (std::runtime_error("Invalid character in the server_name directive."));
-		serv.server_name.push_back(tokens[i]);
+		serv.addServerName(tokens[i]);
 		i++;
 	}
 	
 	if (i >= tokens.size())
 		throw (std::runtime_error("Missing ';' after server_name directives."));
-	if (serv.server_name.empty())
+	if (serv.getServerNames().empty())
 		throw (std::runtime_error("No server names provided."));
 	i++;
 }

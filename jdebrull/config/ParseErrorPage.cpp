@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ParseErrorPage.cpp                                 :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/30 19:06:46 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/18 16:18:14 by jdebrull         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "ParseErrorPage.hpp"
 
 bool isValidErrorCodePath(const std::string& token)
@@ -45,7 +33,7 @@ static int	isValidCode(const std::string& token)
 	return (n);
 }
 
-void	parseErrorPage(std::vector<std::string>& tokens, size_t& i, Server& serv)
+void	parseErrorPage(std::vector<std::string>& tokens, size_t& i, ServerConfig& serv)
 {
 	i++;
 	if (i >= tokens.size())
@@ -77,6 +65,6 @@ void	parseErrorPage(std::vector<std::string>& tokens, size_t& i, Server& serv)
 	if (i >= tokens.size() || tokens[i] != ";")
 		throw (std::runtime_error("Missing ';' after error_page directive."));
 	for (size_t j = 0; j < codes.size(); ++j)
-		serv.error_page[codes[j]] = path;
+		serv.addErrorPage(codes[j], path);
 	i++;
 }

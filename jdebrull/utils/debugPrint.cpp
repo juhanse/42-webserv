@@ -1,90 +1,119 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   debugPrint.cpp                                     :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/03 13:12:46 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/03 14:09:01 by jdebrull         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#include "debugPrint.hpp"
 
 #include "debugPrint.hpp"
 
-void printLocation(const Location &loc)
+static void printLocation(const LocationConfig& loc)
 {
-	std::cout << "    Location:" << std::endl;
-	std::cout << "      path: " << loc.path << std::endl;
+    std::cout << "    Location:" << std::endl;
+    std::cout << "      path: " << loc.getPath() << std::endl;
 
-	if (!loc.root.empty())
-		std::cout << "      root: " << loc.root << std::endl;
+    if (!loc.getRoot().empty())
+        std::cout << "      root: " << loc.getRoot() << std::endl;
 
-	if (!loc.index.empty())
-	{
-		std::cout << "      index:";
-		for (size_t i = 0; i < loc.index.size(); i++)
-			std::cout << " " << loc.index[i];
-		std::cout << std::endl;
-	}
+    if (!loc.getIndex().empty())
+    {
+        std::cout << "      index:";
+        const std::vector<std::string>& index = loc.getIndex();
+        for (size_t i = 0; i < index.size(); ++i)
+            std::cout << " " << index[i];
+        std::cout << std::endl;
+    }
 
-	if (loc.autoindex_set)
-		std::cout << "      autoindex: " << (loc.autoindex ? "on" : "off") << std::endl;
+    std::cout << "      autoindex: "
+              << (loc.getAutoIndex() ? "on" : "off")
+              << std::endl;
 
-	if (!loc.methods.empty())
-	{
-		std::cout << "      allowed_methods:";
-		for (std::set<std::string>::const_iterator it = loc.methods.begin();
-			 it != loc.methods.end(); ++it)
-			std::cout << " " << *it;
-		std::cout << std::endl;
-	}
+    if (!loc.getMethods().empty())
+    {
+        std::cout << "      allowed_methods:";
+        const std::set<std::string>& methods = loc.getMethods();
+        for (std::set<std::string>::const_iterator it = methods.begin();
+             it != methods.end(); ++it)
+            std::cout << " " << *it;
+        std::cout << std::endl;
+    }
 
-	if (loc.client_max_size)
-		std::cout << "      client_max_size: " << loc.client_max_size << std::endl;
+    if (loc.getClientMaxBodySize() > 0)
+        std::cout << "      client_max_body_size: "
+                  << loc.getClientMaxBodySize()
+                  << std::endl;
+
+    if (loc.getReturnCode() != 0)
+    {
+        std::cout << "      return: "
+                  << loc.getReturnCode();
+        if (!loc.getReturnUrl().empty())
+            std::cout << " " << loc.getReturnUrl();
+        std::cout << std::endl;
+    }
+
+    if (!loc.getUploadPath().empty())
+        std::cout << "      upload: "
+                  << loc.getUploadPath()
+                  << std::endl;
+
+    if (!loc.getCgiExtensions().empty())
+    {
+        std::cout << "      cgi_extension:" << std::endl;
+        const std::map<std::string, std::string>& cgi = loc.getCgiExtensions();
+        for (std::map<std::string, std::string>::const_iterator it = cgi.begin();
+             it != cgi.end(); ++it)
+            std::cout << "        "
+                      << it->first << " -> "
+                      << it->second << std::endl;
+    }
 }
 
-void printServer(const Server &serv, size_t index)
+static void printServer(const ServerConfig& serv, size_t index)
 {
-	std::cout << "\nServer #" << index << std::endl;
-	std::cout << "  host: " << serv.host << std::endl;
-	std::cout << "  port: " << serv.port << std::endl;
+    std::cout << "\nServer #" << index << std::endl;
 
-	if (!serv.server_name.empty())
-	{
-		std::cout << "  server_name:";
-		for (size_t i = 0; i < serv.server_name.size(); i++)
-			std::cout << " " << serv.server_name[i];
-		std::cout << std::endl;
-	}
+    std::cout << "  host: " << serv.getHost() << std::endl;
+    std::cout << "  port: " << serv.getPort() << std::endl;
 
-	if (!serv.root.empty())
-		std::cout << "  root: " << serv.root << std::endl;
+    if (!serv.getServerNames().empty())
+    {
+        std::cout << "  server_name:";
+        const std::vector<std::string>& names = serv.getServerNames();
+        for (size_t i = 0; i < names.size(); ++i)
+            std::cout << " " << names[i];
+        std::cout << std::endl;
+    }
 
-	if (!serv.index.empty())
-	{
-		std::cout << "  index:";
-		for (size_t i = 0; i < serv.index.size(); i++)
-			std::cout << " " << serv.index[i];
-		std::cout << std::endl;
-	}
+    if (!serv.getRoot().empty())
+        std::cout << "  root: " << serv.getRoot() << std::endl;
 
-	std::cout << "  client_max_body_size: " << serv.client_max_body_size << std::endl;
+    if (!serv.getIndex().empty())
+    {
+        std::cout << "  index:";
+        const std::vector<std::string>& index = serv.getIndex();
+        for (size_t i = 0; i < index.size(); ++i)
+            std::cout << " " << index[i];
+        std::cout << std::endl;
+    }
 
-	if (!serv.error_page.empty())
-	{
-		std::cout << "  error_page:" << std::endl;
-		for (std::map<int, std::string>::const_iterator it = serv.error_page.begin();
-			 it != serv.error_page.end(); ++it)
-			std::cout << "    " << it->first << " -> " << it->second << std::endl;
-	}
+    std::cout << "  client_max_body_size: "
+              << serv.getClientMaxBodysize()
+              << std::endl;
 
-	for (size_t i = 0; i < serv.locations.size(); i++)
-		printLocation(serv.locations[i]);
+    if (!serv.getErrorPages().empty())
+    {
+        std::cout << "  error_page:" << std::endl;
+        const std::map<int, std::string>& errors = serv.getErrorPages();
+        for (std::map<int, std::string>::const_iterator it = errors.begin();
+             it != errors.end(); ++it)
+            std::cout << "    "
+                      << it->first << " -> "
+                      << it->second << std::endl;
+    }
+
+    const std::vector<LocationConfig>& locations = serv.getLocations();
+    for (size_t i = 0; i < locations.size(); ++i)
+        printLocation(locations[i]);
 }
 
-void printServers(const std::vector<Server> &servers)
+void printServers(const std::vector<ServerConfig>& servers)
 {
-	for (size_t i = 0; i < servers.size(); i++)
-		printServer(servers[i], i);
+    for (size_t i = 0; i < servers.size(); ++i)
+        printServer(servers[i], i);
 }

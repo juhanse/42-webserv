@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Location.hpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/12 16:50:30 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/05 16:45:00 by jdebrull         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef LOCATION_HPP
 # define LOCATION_HPP
 
@@ -17,24 +5,49 @@
 # include <set>
 # include <map>
 # include <vector>
+# include <iostream>
 
-struct Location
+class LocationConfig
 {
-	size_t						client_max_size;
+	private:
+		size_t			client_max_size;
+		std::string		path;
+		std::string		root;
+		std::string		upload;
+		std::string		return_url;
+		int				return_code;
+		bool			autoindex;
 
-	std::string					path;
-	std::string					root;
-	std::string					upload;
-	std::string					return_url;
-	int							return_code;
-	bool						autoindex;
-	bool						autoindex_set;
-	
-	std::vector<std::string>			index;
-	bool								index_set;
-	std::set<std::string> 				methods;
-	std::map<std::string, std::string>	cgi_extension;
-	Location();
+		std::vector<std::string>			index;
+		std::set<std::string>				methods;
+		std::map<std::string, std::string>	cgi_extension;
+
+	public:
+		LocationConfig();
+		~LocationConfig();
+		
+		const std::string&							getPath() const;
+		const std::string&							getRoot() const;
+		const std::vector<std::string>&				getIndex() const;
+		const std::set<std::string>&				getMethods() const;
+		size_t										getClientMaxBodySize() const;
+		bool										getAutoIndex() const;
+		int											getReturnCode() const;
+		const std::string&							getReturnUrl() const;
+		const std::map<std::string, std::string>&	getCgiExtensions() const;
+		const std::string&							getUploadPath() const;
+
+		void	setPath(const std::string& p);
+		void	setRoot(const std::string& r);
+		void	setClientMaxBodySize(size_t size);
+		void	setAutoIndex(bool value);
+		void	setReturn(int code, const std::string& url);
+		void	setUpload(const std::string& path);
+
+		void	addIndex(const std::string& file);
+		void	addMethod(const std::string& method);
+		void	addCgiExtension(const std::string& ext, const std::string& path);
+
 };
 
 #endif

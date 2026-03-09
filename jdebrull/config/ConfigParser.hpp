@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ConfigParser.hpp                                   :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/12 17:49:45 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/03 13:15:41 by jdebrull         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef CONFIGPARSER_HPP
 # define CONFIGPARSER_HPP
 
@@ -34,7 +22,7 @@
 
 class ConfigParser {
 	public:
-		std::vector<Server> parse(const std::string& filename);
+		std::vector<ServerConfig> parse(const std::string& filename);
 		std::vector<std::string> tokenize(const std::string& input);
 };
 

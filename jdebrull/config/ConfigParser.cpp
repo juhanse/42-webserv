@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ConfigParser.cpp                                   :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/12 17:53:13 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/18 14:55:34 by jdebrull         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "ConfigParser.hpp"
 
 std::vector<std::string> ConfigParser::tokenize(const std::string& input)
@@ -46,7 +34,7 @@ std::vector<std::string> ConfigParser::tokenize(const std::string& input)
 	return (tokens);
 }
 
-void	parseTokens(std::vector<std::string>& tokens, std::vector<Server>& servers)
+void	parseTokens(std::vector<std::string>& tokens, std::vector<ServerConfig>& servers)
 {
 	size_t	i = 0;
 
@@ -59,24 +47,27 @@ void	parseTokens(std::vector<std::string>& tokens, std::vector<Server>& servers)
 			throw std::runtime_error("Expected '{'");
 		i++;
 
-		Server		serv;
+		ServerConfig		serv;
+		bool				listen_set = false;
+		bool				index_set = false;
+		bool				root_set = false;
 
 		while (i < tokens.size() && tokens[i] != "}")
 		{
 			if (tokens[i] == "listen") {
-				parseListen(tokens, i, serv);
+				parseListen(tokens, i, serv, listen_set);
 			}
 			else if (tokens[i] == "server_name") {
 				parseServerName(tokens, i, serv);
 			}
 			else if (tokens[i] == "root") {
-				parseRoot(tokens, i, serv.root);
+				parseRoot(tokens, i, serv, root_set);
 			}
 			else if (tokens[i] == "index") {
-				parseIndex(tokens, i, serv.index, serv.index_set);
+				parseIndex(tokens, i, serv, index_set);
 			}
 			else if (tokens[i] == "client_max_body_size") {
-				parseMaxSize(tokens, i, serv.client_max_body_size, 52428800); //50MB
+				parseMaxSize(tokens, i, serv, 52428800); //50MB
 			}
 			else if (tokens[i] == "error_page") {
 				parseErrorPage(tokens, i, serv);
@@ -96,20 +87,20 @@ void	parseTokens(std::vector<std::string>& tokens, std::vector<Server>& servers)
 	}
 }
 
-static void	checkMissingDirectives(std::vector<Server>& servers)
+static void	checkMissingDirectives(std::vector<ServerConfig>& servers)
 {
 	for (size_t i = 0; i < servers.size(); ++i)
 	{
-		if (!servers[i].listen_set)
+		if (servers[i].getPort() == 0)
 			throw (std::runtime_error("Missing Listen directive in server block."));
-		if (servers[i].root.empty())
+		if (servers[i].getRoot().empty())
 			throw (std::runtime_error("Missing root directive in server block."));
 	}
 }
 
-std::vector<Server> ConfigParser::parse(const std::string& filename)
+std::vector<ServerConfig> ConfigParser::parse(const std::string& filename)
 {
-	std::vector<Server>	servers;
+	std::vector<ServerConfig>	servers;
 
 	std::ifstream	file(filename.c_str());
 	if (!file.is_open())

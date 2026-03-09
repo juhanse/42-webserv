@@ -1,22 +1,10 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ParseLocation.cpp                                  :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/31 12:37:43 by jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/18 16:36:33 by jdebrull         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "ParseLocation.hpp"
 
 static bool	isValidMethod(const std::string& token) {
 	return (token == "GET" || token == "POST" || token == "DELETE");
 }
 
-static void	parseMethods(std::vector<std::string>& tokens, size_t& i, Location& loc)
+static void	parseMethods(std::vector<std::string>& tokens, size_t& i, LocationConfig& loc)
 {
 	i++;
 	if (i >= tokens.size())
@@ -25,34 +13,33 @@ static void	parseMethods(std::vector<std::string>& tokens, size_t& i, Location& 
 	{
 		if (!isValidMethod(tokens[i]))
 			throw (std::runtime_error("Unkown method for location directive."));
-		if (loc.methods.count(tokens[i]))
-			throw (std::runtime_error("Duplicate method in allowed methods."));
-		loc.methods.insert(tokens[i]);
+
+		loc.addMethod(tokens[i]);
 		i++;
 	}
-	if (loc.methods.empty())
+	if (loc.getMethods().empty())
 		throw (std::runtime_error("Need at least one allowed method."));
 	if (i >= tokens.size() || tokens[i] != ";")
 		throw (std::runtime_error("Missing ';' after allowed methods."));
 	i++;
 }
 
-void	parseAutoIndex(std::vector<std::string>& tokens, size_t& i, Location& loc)
+void	parseAutoIndex(std::vector<std::string>& tokens, size_t& i, LocationConfig& loc, bool& autoindex_set)
 {
-	if (loc.autoindex_set)
+	if (autoindex_set)
 		throw (std::runtime_error("Only one autoindex directive is allowed per location block."));
 	
 	i++;
 	if (i >= tokens.size() || tokens[i] == ";")
 		throw (std::runtime_error("Missing a value for autoindex directive."));
 	if (tokens[i] == "on")
-		loc.autoindex = true;
+		loc.setAutoIndex(true);
 	else if (tokens[i] == "off")
-		loc.autoindex = false;
+		loc.setAutoIndex(false);
 	else
 		throw (std::runtime_error("Wrong directive for autoindex either 'on' or 'off'."));
 	
-	loc.autoindex_set = true;
+	autoindex_set = true;
 	
 	i++;
 	if (i >= tokens.size() || tokens[i] != ";")
@@ -60,16 +47,16 @@ void	parseAutoIndex(std::vector<std::string>& tokens, size_t& i, Location& loc)
 	i++;
 }
 
-void	parseUpload(std::vector<std::string>& tokens, size_t& i, Location& loc)
+void	parseUpload(std::vector<std::string>& tokens, size_t& i, LocationConfig& loc, bool& upload_set)
 {
-	if (!loc.upload.empty())
+	if (upload_set)
 		throw (std::runtime_error("Duplicate upload directives."));
 	i++;
 	if (i >= tokens.size() || tokens[i] == ";")
 		throw (std::runtime_error("Missing path for upload directive."));
 	if (!isValidPath(tokens[i]))
 		throw (std::runtime_error("Path is invalid for upload directive."));
-	loc.upload = tokens[i];
+	loc.setUpload(tokens[i]);
 	i++;
 	if (i >= tokens.size() || tokens[i] != ";")
 		throw (std::runtime_error("Missing ; after upload directive path."));
@@ -106,8 +93,10 @@ static bool	isValidReturnPath(const std::string& token)
 	return (false);
 }
 
-void	parseReturn(std::vector<std::string>& tokens, size_t& i, Location& loc)
+void	parseReturn(std::vector<std::string>& tokens, size_t& i, LocationConfig& loc, bool& return_set)
 {
+	if (return_set)
+		throw (std::runtime_error("Duplicate return directive."));
 	i++;
 	if (i >= tokens.size() || tokens[i] == ";")
 		throw (std::runtime_error("Missing status code for the return directive."));
@@ -116,7 +105,7 @@ void	parseReturn(std::vector<std::string>& tokens, size_t& i, Location& loc)
 	i++;
 
 	std::string path;
-	if (i < tokens.size())
+	if (i < tokens.size() && tokens[i] != ";")
 	{
 		if (!isValidReturnPath(tokens[i]))
 			throw (std::runtime_error("Invalid path for return directive."));
@@ -127,8 +116,8 @@ void	parseReturn(std::vector<std::string>& tokens, size_t& i, Location& loc)
 	if (i >= tokens.size() || tokens[i] != ";")
 		throw (std::runtime_error("Missing ';' after return directive path."));
 	i++;
-	loc.return_code = code;
-	loc.return_url = path;
+	loc.setReturn(code, path);
+	return_set = true;
 }
 
 bool	isValidCgiPath(const std::string& token)
@@ -146,71 +135,88 @@ bool	isValidCgiPath(const std::string& token)
 	return (true);
 }
 
-void parseCgiExtension(std::vector<std::string>& tokens, size_t& i, Location& loc)
+void parseCgiExtension(std::vector<std::string>& tokens, size_t& i, LocationConfig& loc)
 {
 	i++; 
 	if (i >= tokens.size() || tokens[i] == ";")
 		throw (std::runtime_error("Missing extension for the CGI extension directive."));
+
 	std::string ext = tokens[i];
 	if (ext.empty() || ext[0] != '.')
 		throw (std::runtime_error("CGI extension must start with a dot."));
+	
 	i++;
 	if (i >= tokens.size())
 		throw (std::runtime_error("Missing path for cgi_extension directive."));
+	
 	std::string cgi_path = tokens[i];
-
 	if (!isValidCgiPath(cgi_path))
 		throw (std::runtime_error("Invalid path for cgi_extension directive " + tokens[i]));
+	
 	i++;
 	if (i >= tokens.size() || tokens[i] != ";")
 		throw (std::runtime_error("Missing ';' after cgi_extension directive."));
+	
 	i++;
-	if (loc.cgi_extension.count(ext))
-		throw (std::runtime_error("Duplicate cgi_extension directive for the same extension."));
-	loc.cgi_extension[ext] = cgi_path;
+	loc.addCgiExtension(ext, cgi_path);
 }
 
-static void	finalizeLocation(Location& loc, const Server& serv)
+static void	finalizeLocation(LocationConfig& loc, const ServerConfig& serv, bool loc_root_set, bool loc_index_set)
 {
-	if (loc.root.empty())
-		loc.root = serv.root;
-	if (loc.index.empty())
-		loc.index = serv.index;
-	if (loc.methods.empty())
-		loc.methods.insert("GET");
+	if (!loc_root_set)
+		loc.setRoot(serv.getRoot());
+	if (!loc_index_set)
+	{
+		const std::vector<std::string>& serverIndex = serv.getIndex();
+	
+		for (size_t j = 0; j < serverIndex.size(); ++j)
+			loc.addIndex(serverIndex[j]);
+	}
+	if (loc.getMethods().empty())
+		loc.addMethod("GET");
 }
 
-void	parseLocation(std::vector<std::string>& tokens, size_t& i, Server&  serv)
+void	parseLocation(std::vector<std::string>& tokens, size_t& i, ServerConfig&  serv)
 {
-	Location loc;
+	LocationConfig loc;
+
+	bool	root_set = false;
+	bool	index_set = false;
+	bool	autoindex_set = false;
+	bool	upload_set = false;
+	bool	return_set = false;
+
 	i++;
 	if (i >= tokens.size() || tokens[i] == ";" || tokens[i] == "{")
 		throw (std::runtime_error("Expected path for location directive."));
 	if (!isValidPath(tokens[i]))
 		throw (std::runtime_error("Invalid path for location directive."));
-	loc.path = tokens[i];
+	loc.setPath(tokens[i]);
+	
 	i++;
 	if (i >= tokens.size() || tokens[i] != "{")
 		throw (std::runtime_error("Expected '{' after path for location directive."));
+	
 	i++;
 	while (i < tokens.size() && tokens[i] != "}")
 	{
-		if (tokens[i] == "allow_methods")
+		if (tokens[i] == "allow_methods" || tokens[i] == "methods") {
 			parseMethods(tokens, i, loc);
+		}
 		else if (tokens[i] == "root") {
-			parseRoot(tokens, i, loc.root);
+			parseRoot(tokens, i, loc, root_set);
 		}
 		else if (tokens[i] == "index") {
-			parseIndex(tokens, i, loc.index, loc.index_set);
+			parseIndex(tokens, i, loc, index_set);
 		}
 		else if (tokens[i] == "autoindex")
-			parseAutoIndex(tokens, i, loc);
-		else if (tokens[i] == "client_max_size")
-			parseMaxSize(tokens, i, loc.client_max_size, 52428800); //50MB
+			parseAutoIndex(tokens, i, loc, autoindex_set);
+		else if (tokens[i] == "client_max_size" || tokens[i] == "client_max_body_size")
+			parseMaxSize(tokens, i, loc, 52428800); //50MB
 		else if (tokens[i] == "upload")
-			parseUpload(tokens, i, loc);
+			parseUpload(tokens, i, loc, upload_set);
 		else if (tokens[i] == "return")
-			parseReturn(tokens, i, loc);
+			parseReturn(tokens, i, loc, return_set);
 		else if (tokens[i] == "cgi_extension")
 			parseCgiExtension(tokens, i, loc);
 		else if (tokens[i] == ";")
@@ -221,6 +227,6 @@ void	parseLocation(std::vector<std::string>& tokens, size_t& i, Server&  serv)
 	if (i >= tokens.size() || tokens[i] != "}")
 		throw (std::runtime_error("Expected '}' at end of location block."));
 	i++;
-	finalizeLocation(loc, serv);
-	serv.locations.push_back(loc);
+	finalizeLocation(loc, serv, root_set, index_set);
+	serv.addLocation(loc);
 }

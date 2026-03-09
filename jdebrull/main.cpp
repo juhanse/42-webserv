@@ -6,7 +6,7 @@
 /*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 15:21:26 by Jdebrull          #+#    #+#             */
-/*   Updated: 2026/02/18 16:37:08 by jdebrull         ###   ########.fr       */
+/*   Updated: 2026/03/03 17:18:40 by jdebrull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ int	main(int ac, char **av)
 	try
 	{
 		ConfigParser parser;
-		std::vector<Server> servers = parser.parse(av[1]);
+		std::vector<ServerConfig> servers = parser.parse(av[1]);
 	
 		std::cout << "No errors detected in parsing." << std::endl;
 		printServers(servers);
