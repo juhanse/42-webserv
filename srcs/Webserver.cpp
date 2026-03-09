@@ -65,7 +65,7 @@ void	Webserver::newClient(int listFd) {
 
 	// char* ip = inet_ntoa(client_addr.sin_addr);
 	// int port = ntohs(client_addr.sin_port);
-	Client*	client = new Client(client_fd); //add ip, port, config ?
+	Client*	client = new Client(client_fd, config); //add ip, port, config ?
 	_clients[client_fd] = client;
 
 	sendToWatchList(client_fd);
