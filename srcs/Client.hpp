@@ -3,6 +3,7 @@
 #include <iostream>
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
+#include "ResponseGenerator.hpp"
 #include <sstream>
 #include <sys/socket.h>
 
@@ -46,7 +47,7 @@ class	Client {
 		void		resetActivity();
 
 	public:
-		Client(int fd);
+		Client(int fd, ServerConfig* config);
 		~Client();
 
 		int			getStatus() const;

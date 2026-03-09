@@ -1,8 +1,10 @@
 #include "Client.hpp"
 
-Client::Client(int fd):	_fd(fd), 
-						_lastActive(time(NULL)),
-						_status(READING)
+Client::Client(int fd, ServerConfig* config):
+	_fd(fd), 
+	_lastActive(time(NULL)),
+	_status(READING),
+	_config(config)
 {
 	_request = new HttpRequest();
 	_response = new HttpResponse();
@@ -115,8 +117,17 @@ void	Client::processRequest() {
 	//else
 		//status code aura ete maj dans le parsing 
 		//generate response error
+	
+	//_status = WRITING;
 
-	_status = WRITING;
+
+    _request->parse(_recvBuff);
+
+    ResponseGenerator generator;
+    HttpResponse res = generator.generate(*_request, *_config);
+
+    *_response = res;
+    _status = WRITING;
 }
 
 void	Client::readRequest() {
@@ -151,4 +162,14 @@ void	Client::writeResponse() {
 
 	size_t	leftover = _sendBuff.size() - _sendOffset;
 	size_t	bytes = send(_fd, _sendBuff.c_str(), leftover, 0); //check flags
+
+	if (bytes > 0) {
+        // On retient combien d'octets sont partis sur le réseau
+        _sendOffset += bytes;
+    }
+
+	// Si on a tout envoyé (ou s'il y a une erreur fatale sur le socket)
+    if (_sendOffset == _sendBuff.size() || bytes <= 0) {
+        _status = DONE; // <--- C'est ça qui dira à Webserver de fermer la connexion !
+    }
 }
