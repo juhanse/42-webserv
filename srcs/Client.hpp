@@ -1,9 +1,9 @@
 #pragma once
 
 #include <iostream>
-#include "HttpRequest.hpp"
-#include "HttpResponse.hpp"
-#include "ResponseGenerator.hpp"
+#include "http/HttpRequest.hpp"
+#include "http/HttpResponse.hpp"
+#include "http/ResponseGenerator.hpp"
 #include <sstream>
 #include <sys/socket.h>
 

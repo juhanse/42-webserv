@@ -9,7 +9,7 @@
 #include "Client.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include "ServerConfig.hpp"
+#include "config/ServerConfig.hpp"
 
 class	Webserver {
 	private:

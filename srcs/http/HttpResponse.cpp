@@ -89,9 +89,10 @@ void HttpResponse::setContentType(const std::string& path) {
 void HttpResponse::generateErrorPage(int code, const ServerConfig& config) {
 	setStatusCode(code);
 	
-	std::map<int, std::string>::const_iterator it = config.error_pages.find(code);
+	const std::map<int, std::string>& errorPages = config.getErrorPages();
+	std::map<int, std::string>::const_iterator it = errorPages.find(code);
 	
-	if (it != config.error_pages.end()) {
+	if (it != errorPages.end()) {
 		std::ifstream file(it->second.c_str());
 
 		if (file.is_open()) {
