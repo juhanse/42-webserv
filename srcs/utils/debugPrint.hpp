@@ -2,7 +2,7 @@
 # define DEBUGPRINT_HPP
 
 # include <iostream>
-# include "../core/Server.hpp"
+# include "../config/ServerConfig.hpp"
 
 void printServers(const std::vector<ServerConfig>& servers);
 

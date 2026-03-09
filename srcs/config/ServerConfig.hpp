@@ -1,10 +1,9 @@
-#ifndef SERVER_HPP
-# define SERVER_HPP
+#pragma once
 
 #include <string>
 #include <vector>
 #include <map>
-#include "Location.hpp"
+#include "LocationConfig.hpp"
 
 class ServerConfig
 {
@@ -54,5 +53,3 @@ class Config
 		void	addServer(const ServerConfig& s);
 		const	std::vector<ServerConfig>& getServers() const;
 };
-
-#endif

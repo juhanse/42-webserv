@@ -46,7 +46,7 @@ void HttpResponse::setBody(const std::string& content) {
 std::string HttpResponse::getRawResponse() const {
 	std::stringstream res;
 
-	res << "Http/1.0 " << _status_code << " " << _getStatusMessage(_status_code) << "\r\n";
+	res << "HTTP/1.0 " << _status_code << " " << _getStatusMessage(_status_code) << "\r\n";
 	
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it) {
 		res << it->first << ": " << it->second << "\r\n";
@@ -85,9 +85,10 @@ void HttpResponse::setContentType(const std::string& path) {
 void HttpResponse::generateErrorPage(int code, const ServerConfig& config) {
 	setStatusCode(code);
 	
-	std::map<int, std::string>::const_iterator it = config.error_pages.find(code);
+	const std::map<int, std::string>& errorPages = config.getErrorPages();
+	std::map<int, std::string>::const_iterator it = errorPages.find(code);
 	
-	if (it != config.error_pages.end()) {
+	if (it != errorPages.end()) {
 		std::ifstream file(it->second.c_str());
 
 		if (file.is_open()) {

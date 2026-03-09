@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ServerConfig.hpp"
+#include "../config/ServerConfig.hpp"
 #include <iostream>
 #include <string>
 #include <map>

@@ -3,12 +3,13 @@
 ResponseGenerator::ResponseGenerator() {}
 ResponseGenerator::~ResponseGenerator() {}
 
-const Location* ResponseGenerator::_matchLocation(const std::string& requestPath, const ServerConfig& config) {
+const LocationConfig* ResponseGenerator::_matchLocation(const std::string& requestPath, const ServerConfig& config) {
 	int bestMatchIdx = -1;
 	size_t longestPrefix = 0;
 
-	for (size_t i = 0; i < config.locations.size(); ++i) {
-		const std::string& locPath = config.locations[i].path;
+	const std::vector<LocationConfig>& locations = config.getLocations();
+	for (size_t i = 0; i < locations.size(); ++i) {
+		const std::string& locPath = locations[i].getPath();
 		
 		// Si le path de la requête commence par le path de la location
 		if (requestPath.find(locPath) == 0) {
@@ -25,7 +26,7 @@ const Location* ResponseGenerator::_matchLocation(const std::string& requestPath
 	}
 
 	// return de l'adresse de la location trouvée
-	return &config.locations[bestMatchIdx];
+	return &locations[bestMatchIdx];
 }
 
 std::string ResponseGenerator::_readFile(const std::string& path) {
@@ -46,28 +47,34 @@ HttpResponse ResponseGenerator::generate(const HttpRequest& req, const ServerCon
     HttpResponse res;
 
     // 1. Trouver la Location
-    const Location* locPtr = _matchLocation(req.getPath(), config);
+    const LocationConfig* locPtr = _matchLocation(req.getPath(), config);
     if (locPtr == NULL) {
         res.generateErrorPage(404, config);
         return res;
     }
-    const Location& loc = *locPtr;
+    const LocationConfig& loc = *locPtr;
 
     // 2. Check autorisations
     bool allowed = false;
-    for (size_t i = 0; i < loc.methods.size(); ++i) {
-        if (loc.methods[i] == req.getMethod()) {
-            allowed = true;
-            break;
-        }
-    }
+    const std::set<std::string>& methods = loc.getMethods();
+	if (methods.find(req.getMethod()) != methods.end()) {
+		allowed = true;
+	}
     if (!allowed) {
         res.generateErrorPage(405, config);
         return res;
     }
 
     // 3. L'aiguillage
-    bool isCGI = !loc.cgi_ext.empty() && (req.getPath().find(loc.cgi_ext) != std::string::npos);
+	const std::map<std::string, std::string>& cgi = loc.getCgiExtensions();
+
+	size_t dot = req.getPath().rfind('.');
+	bool isCGI = false;
+
+	if (dot != std::string::npos) {
+		std::string ext = req.getPath().substr(dot);
+		isCGI = (cgi.find(ext) != cgi.end());
+	}
 
     if (isCGI) {
         return _handleCGI(req, loc, config);
@@ -83,9 +90,9 @@ HttpResponse ResponseGenerator::generate(const HttpRequest& req, const ServerCon
     return _handleStatic(req, loc, config);
 }
 
-HttpResponse ResponseGenerator::_handleStatic(const HttpRequest& req, const Location& loc, const ServerConfig& config) {
+HttpResponse ResponseGenerator::_handleStatic(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
 	HttpResponse res;
-	std::string fullPath = loc.root + req.getPath();
+	std::string fullPath = loc.getRoot() + req.getPath();
 
 	struct stat s;
 	if (stat(fullPath.c_str(), &s) != 0) {
@@ -94,9 +101,20 @@ HttpResponse ResponseGenerator::_handleStatic(const HttpRequest& req, const Loca
 	}
 
 	if (S_ISDIR(s.st_mode)) {
-		fullPath += "/" + loc.index;
+		const std::vector<std::string>& indexes = loc.getIndex();
+		bool found = false;
 
-		if (stat(fullPath.c_str(), &s) != 0) {
+		for (size_t i = 0; i < indexes.size(); ++i) {
+			std::string candidate = fullPath + "/" + indexes[i];
+
+			if (stat(candidate.c_str(), &s) == 0) {
+				fullPath = candidate;
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) {
 			res.generateErrorPage(404, config);
 			return res;
 		}
@@ -115,10 +133,10 @@ HttpResponse ResponseGenerator::_handleStatic(const HttpRequest& req, const Loca
 	return res;
 }
 
-HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const Location& loc, const ServerConfig& config) {
+HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
 	HttpResponse res;
 
-	std::string scriptPath = loc.root + req.getPath();
+	std::string scriptPath = loc.getRoot() + req.getPath();
 
 	// Check si le script existe
 	struct stat s;
@@ -143,9 +161,9 @@ HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const Locatio
 	return res;
 }
 
-HttpResponse ResponseGenerator::_handlePostUpload(const HttpRequest& req, const Location& loc, const ServerConfig& config) {
+HttpResponse ResponseGenerator::_handlePostUpload(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
 	HttpResponse res;
-	std::string fullPath = loc.root + req.getPath();
+	std::string fullPath = loc.getRoot() + req.getPath();
 
 	struct stat s;
 	
@@ -180,9 +198,9 @@ HttpResponse ResponseGenerator::_handlePostUpload(const HttpRequest& req, const 
 	return res;
 }
 
-HttpResponse ResponseGenerator::_handleDelete(const HttpRequest& req, const Location& loc, const ServerConfig& config) {
+HttpResponse ResponseGenerator::_handleDelete(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
     HttpResponse res;
-    std::string fullPath = loc.root + req.getPath();
+    std::string fullPath = loc.getRoot() + req.getPath();
 
     struct stat s;
     

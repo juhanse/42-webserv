@@ -114,6 +114,8 @@ static void printServer(const ServerConfig& serv, size_t index)
 
 void printServers(const std::vector<ServerConfig>& servers)
 {
-    for (size_t i = 0; i < servers.size(); ++i)
+    for (size_t i = 0; i < servers.size(); i++) {
+        std::cout << "INC : " << i << std::endl;
         printServer(servers[i], i);
+    }
 }

@@ -37,7 +37,6 @@ std::vector<std::string> ConfigParser::tokenize(const std::string& input)
 void	parseTokens(std::vector<std::string>& tokens, std::vector<ServerConfig>& servers)
 {
 	size_t	i = 0;
-
 	while (i < tokens.size())
 	{
 		if (tokens[i] != "server")

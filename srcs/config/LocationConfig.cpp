@@ -1,4 +1,4 @@
-#include "Location.hpp"
+#include "LocationConfig.hpp"
 
 LocationConfig::LocationConfig() : client_max_size(0), return_code(0), autoindex(false) {}
 

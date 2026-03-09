@@ -1,8 +1,8 @@
 #pragma once
 
 #include <iostream>
-#include "HttpRequest.hpp"
-#include "HttpResponse.hpp"
+#include "http/HttpRequest.hpp"
+#include "http/HttpResponse.hpp"
 #include <sstream>
 #include <sys/socket.h>
 

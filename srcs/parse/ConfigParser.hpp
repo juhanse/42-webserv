@@ -8,8 +8,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <climits>
-#include "../core/Server.hpp"
-#include "../core/Location.hpp"
+#include "../config/ServerConfig.hpp"
+#include "../config/LocationConfig.hpp"
 #include "../utils/utils.hpp"
 #include "ParseListen.hpp"
 #include "ParseServerName.hpp"

@@ -91,16 +91,16 @@ void	Webserver::closeClient(int fd) {
 }
 
 int Webserver::newServ(ServerConfig* config) {	
-	int	listen_fd = newListenSock(config->port);
+	int	listen_fd = newListenSock(config->getPort());
 	if (listen_fd == -1) {
 		std::cerr	<< "Listen socket creation failed on port "
-					<< config->port << std::endl;
+					<< config->getPort() << std::endl;
 		return (-1);	
 	}
 	sendToWatchList(listen_fd);
 	_listenFds[listen_fd] = config;
 	
-	std::cout << "Server listening on port " << config->port << std::endl;
+	std::cout << "Server listening on port " << config->getPort() << std::endl;
 
 	return (0);
 }

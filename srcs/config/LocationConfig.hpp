@@ -1,5 +1,4 @@
-#ifndef LOCATION_HPP
-# define LOCATION_HPP
+#pragma once
 
 # include <string>
 # include <set>
@@ -49,5 +48,3 @@ class LocationConfig
 		void	addCgiExtension(const std::string& ext, const std::string& path);
 
 };
-
-#endif

@@ -1,5 +1,5 @@
-#include "Server.hpp"
-					
+#include "ServerConfig.hpp"
+
 ServerConfig::ServerConfig() : port(0), client_max_body_size(1048576) {}
 
 ServerConfig::~ServerConfig() {}
