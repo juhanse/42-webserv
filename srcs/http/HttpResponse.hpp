@@ -26,6 +26,7 @@ class HttpResponse {
 		void setHeader(const std::string& key, const std::string& value);
 		void setBody(const std::string& content);
 
+		void setCookie(const std::string& key, const std::string& value, int max_age);
 		void setContentType(const std::string& path);
 		void generateErrorPage(int code, const ServerConfig& config);
 
