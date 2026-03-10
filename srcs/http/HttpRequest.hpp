@@ -26,8 +26,8 @@ class HttpRequest {
 		const std::string&	getQuery() const { return _query; };
 		const std::string&	getProtocol() const { return _protocol; };
 		const std::string&	getBody() const { return _body; };
+		std::string			getCookie(const std::string& key) const;
 
 		void				setMethod(std::string token);
 		void				setContentLength(std::string token);
-
 };
