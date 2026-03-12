@@ -122,16 +122,16 @@ HttpResponse ResponseGenerator::generate(const HttpRequest& req, const ServerCon
     }
 
     if (req.getMethod() == "POST") {
-        return _handlePostUpload(req, loc, config);
+        return _handleUPDATE(req, loc, config);
     }
     else if (req.getMethod() == "DELETE") {
-        return _handleDelete(req, loc, config);
+        return _handleDELETE(req, loc, config);
     }
 
-    return _handleStatic(req, loc, config);
+    return _handleGET(req, loc, config);
 }
 
-HttpResponse ResponseGenerator::_handleStatic(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
+HttpResponse ResponseGenerator::_handleGET(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
 	HttpResponse res;
 	std::string fullPath = loc.getRoot() + req.getPath();
 
@@ -247,7 +247,7 @@ HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const Locatio
 	return res;
 }
 
-HttpResponse ResponseGenerator::_handlePostUpload(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
+HttpResponse ResponseGenerator::_handleUPDATE(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
 	HttpResponse res;
 	std::string fullPath = loc.getRoot() + req.getPath();
 
@@ -284,7 +284,7 @@ HttpResponse ResponseGenerator::_handlePostUpload(const HttpRequest& req, const 
 	return res;
 }
 
-HttpResponse ResponseGenerator::_handleDelete(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
+HttpResponse ResponseGenerator::_handleDELETE(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
     HttpResponse res;
     std::string fullPath = loc.getRoot() + req.getPath();
 

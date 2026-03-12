@@ -21,10 +21,10 @@ class ResponseGenerator {
 		char**			_createCGIEnv(const HttpRequest& req, const LocationConfig& loc, const std::string& scriptPath);
         void			_freeEnv(char** envp);
 
-		HttpResponse _handleStatic(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
+		HttpResponse _handleGET(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
+		HttpResponse _handleUPDATE(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
+		HttpResponse _handleDELETE(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
 		HttpResponse _handleCGI(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
-		HttpResponse _handleDelete(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
-		HttpResponse _handlePostUpload(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
 
 	public:
 		ResponseGenerator();
