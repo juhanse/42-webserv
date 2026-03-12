@@ -19,7 +19,7 @@ int main(int ac, char **av) {
 		servers = parser.parse(av[1]);
 	
 		std::cout << "No errors detected in parsing." << std::endl;
-		printServers(servers);
+		//printServers(servers);
 	}
 	catch (const std::exception &e)
 	{

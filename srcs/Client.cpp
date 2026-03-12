@@ -148,7 +148,8 @@ void	Client::readRequest() {
 
 		if (isCompleted()) {
 			_status = PROCESSING;
-			//std::cout << _recvBuff << std::endl;
+			std::cout 	<< "RECEIVED REQUEST:\n"
+						<<_recvBuff << std::endl;
 		}
 	}
 	else {
