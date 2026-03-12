@@ -282,21 +282,18 @@ HttpResponse ResponseGenerator::_handleDELETE(const HttpRequest& req, const Loca
     std::string fullPath = loc.getRoot() + req.getPath();
 
     struct stat s;
-    
-    // Check si le fichier existe
     if (stat(fullPath.c_str(), &s) != 0) {
         res.generateErrorPage(404, config);
         return res;
     }
 
-    // Check si c'est un dossier
     if (S_ISDIR(s.st_mode)) {
         res.generateErrorPage(403, config);
         return res;
     }
 
     if (std::remove(fullPath.c_str()) == 0) {
-        res.setStatusCode(204); // "No Content" -> Code standard pour un DELETE réussi et pas besoin de body
+        res.setStatusCode(204);
     } else {
         res.generateErrorPage(403, config);
     }
