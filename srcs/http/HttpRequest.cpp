@@ -52,8 +52,8 @@ bool	HttpRequest::parse(const std::string& rawRequest) {
 		if (_method.empty() || _uri.empty() || _protocol.empty())
 			return (false);
 
-		if (!lineStream.eof())
-			return (false);
+		// if (!lineStream.eof())
+		// 	return (false);
 
 		if (_uri.find("..") != std::string::npos)
 			return (false);
@@ -64,7 +64,7 @@ bool	HttpRequest::parse(const std::string& rawRequest) {
 			_uri = _uri.substr(0, questionMarkPos);
 		}
 
-		if (!_protocol.compare("HTTP/1.0"))
+		if (_protocol != "HTTP/1.0" && _protocol != "HTTP/1.1")
 			return (false); //error 505 ?
 	}
 	else
