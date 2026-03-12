@@ -122,7 +122,7 @@ HttpResponse ResponseGenerator::generate(const HttpRequest& req, const ServerCon
     }
 
     if (req.getMethod() == "POST") {
-        return _handleUPDATE(req, loc, config);
+        return _handlePOST(req, loc, config);
     }
     else if (req.getMethod() == "DELETE") {
         return _handleDELETE(req, loc, config);
@@ -185,100 +185,93 @@ HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const Locatio
 		return res;
 	}
 
-	// char** envp = _createCGIEnv(req, loc, scriptPath);
-
-	// // 3. Création des tuyaux (0 = lecture, 1 = écriture)
-	// int pipe_in[2];  // Le serveur écrit dedans, Python lit
-	// int pipe_out[2]; // Python écrit dedans, le serveur lit
-	// if (pipe(pipe_in) == -1 || pipe(pipe_out) == -1) {
-	// 	_freeEnv(envp);
-	// 	res.generateErrorPage(500, config);
-	// 	return res;
-	// }
-
-	// // 4. Clonage (Fork)
-	// pid_t pid = fork();
-	// if (pid == -1) {
-	// 	_freeEnv(envp);
-	// 	close(pipe_in[0]); close(pipe_in[1]);
-	// 	close(pipe_out[0]); close(pipe_out[1]);
-	// 	res.generateErrorPage(500, config);
-	// 	return res;
-	// }
-	// // --- PROCESSUS ENFANT (PYTHON) ---
-	// if (pid == 0) {
-	// 	// Redirection des entrées/sorties standards
-	// 	dup2(pipe_in[0], STDIN_FILENO);
-	// 	dup2(pipe_out[1], STDOUT_FILENO);
-	// 	// Fermeture des descripteurs inutiles pour l'enfant
-	// 	close(pipe_in[0]); close(pipe_in[1]);
-	// 	close(pipe_out[0]); close(pipe_out[1]);
-
-	// 	char* args[3];
-	// 	args[0] = const_cast<char*>(loc.cgi_path.c_str());
-	// 	args[1] = const_cast<char*>(scriptPath.c_str());
-	// 	args[2] = NULL;
-
-	// 	execve(args[0], args, envp);
-	// 	// Si execve échoue
-	// 	_exit(1);
-	// } 
-	// // --- PROCESSUS PARENT (SERVEUR C++) ---
-	// else {	
-	// 	// Fermeture des côtés des tuyaux que le parent n'utilise pas
-	// 	close(pipe_in[0]);
-	// 	close(pipe_out[1]);
-
-	// 	// PASSAGE EN NON-BLOQUANT (CRUCIAL POUR LE MULTI-CGI)
-	// 	fcntl(pipe_in[1], F_SETFL, O_NONBLOCK);
-	// 	fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
-
-	// 	_freeEnv(envp);
-
-	// 	// On configure une réponse temporaire pour passer le relais au Client
-	// 	res.setStatusCode(100);
-
-	// 	res.setCgiPid(pid);
-	// 	res.setCgiFdIn(pipe_in[1]);
-	// 	res.setCgiFdOut(pipe_out[0]);
-
-	// 	return res;
-	// }
 	return res;
 }
 
-HttpResponse ResponseGenerator::_handleUPDATE(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
+HttpResponse ResponseGenerator::_handlePOST(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
+	std::string contentType = req.getHeader("Content-Type");
+
+	if (contentType.find("multipart/form-data") != std::string::npos) {
+		size_t pos = contentType.find("boundary=");
+		if (pos != std::string::npos) {
+			std::string boundary = contentType.substr(pos + 9);
+			return _handleUpload(req, loc, config, boundary);
+		}
+	}
+
 	HttpResponse res;
-	std::string fullPath = loc.getRoot() + req.getPath();
+	res.setStatusCode(200);
+	res.setBody("<html><body><h1>200 OK</h1><p>Formulaire classique recu avec succes.</p></body></html>");
+	res.setHeader("Content-Type", "text/html");
+	return res;
+}
+
+HttpResponse ResponseGenerator::_handleUpload(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config, const std::string& boundary) {
+	HttpResponse res;
+    std::string body = req.getBody();
+    std::string searchBoundary = "--" + boundary;
+
+    std::cout << "--- DEBUG UPLOAD ---" << std::endl;
+    std::cout << "Boundary recu : [" << searchBoundary << "]" << std::endl;
+
+    size_t fnPos = body.find("filename=\"");
+    if (fnPos == std::string::npos) {
+        std::cout << "ECHEC 1 : filename= non trouve dans le body." << std::endl;
+        res.generateErrorPage(400, config);
+        return res;
+    }
+
+    size_t fnStart = fnPos + 10;
+    size_t fnEnd = body.find("\"", fnStart);
+    if (fnEnd == std::string::npos) {
+        std::cout << "ECHEC 2 : fin du nom de fichier non trouvee." << std::endl;
+        res.generateErrorPage(400, config);
+        return res;
+    }
+
+    std::string filename = body.substr(fnStart, fnEnd - fnStart);
+    std::cout << "Fichier detecte : " << filename << std::endl;
+
+    size_t dataStart = body.find("\r\n\r\n", fnEnd);
+    if (dataStart == std::string::npos) {
+        std::cout << "ECHEC 3 : separateur headers/body (\\r\\n\\r\\n) non trouve." << std::endl;
+        res.generateErrorPage(400, config);
+        return res;
+    }
+    dataStart += 4;
+
+    size_t dataEnd = body.find("\r\n" + searchBoundary, dataStart);
+    if (dataEnd == std::string::npos) {
+        std::cout << "ECHEC 4 : fin du fichier / boundary de fin non trouve." << std::endl;
+        res.generateErrorPage(400, config);
+        return res;
+    }
+
+    std::cout << "Taille du fichier a ecrire : " << (dataEnd - dataStart) << " octets." << std::endl;
+
+	std::string basePath = loc.getRoot() + req.getPath();
+    if (!basePath.empty() && basePath[basePath.length() - 1] != '/') {
+        basePath += "/";
+    }
+    std::string fullPath = basePath + filename;
 
 	struct stat s;
-	
-	// Check si le chemin demandé est un dossier existant
-	// Impossible d'écraser un dossier avec le body de la requête
 	if (stat(fullPath.c_str(), &s) == 0 && S_ISDIR(s.st_mode)) {
 		res.generateErrorPage(403, config);
 		return res;
 	}
 
-	// Création ou écrasement du fichier en mode binaire
 	std::ofstream file(fullPath.c_str(), std::ios::out | std::ios::binary);
-	
-	// Si l'ouverture échoue
 	if (!file.is_open()) {
 		res.generateErrorPage(500, config);
 		return res;
 	}
 
-	file << req.getBody();
-	// Le RAII fermera le fichier automatiquement à la fin du bloc, 
-	// mais on peut le faire explicitement par clarté.
+	file.write(body.data() + dataStart, dataEnd - dataStart);
 	file.close();
 
-	// Réponse
 	res.setStatusCode(201);
-
-	std::string html = "<html><body><h1>201 Created</h1><p>Fichier uploade avec succes !</p></body></html>";
-	res.setBody(html);
+	res.setBody("<html><body><h1>201 Created</h1><p>Fichier uploade avec succes !</p></body></html>");
 	res.setHeader("Content-Type", "text/html");
 
 	return res;
