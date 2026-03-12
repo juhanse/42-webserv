@@ -131,7 +131,7 @@ HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const Locatio
 	// TODO B : Créer les pipes ( int fd_in[2], fd_out[2] )
 	// TODO C : fork()
 	// if (pid == 0) {
-	//      C'est l'enfant : dup2 des pipes, puis execve(loc.cgi_path, args, env)
+	//      C'est l'enfant : dup2 des pipes, puis execve(loc.cgi_uri, args, env)
 	//      exit(1); si execve échoue
 	// } 
 	// else {

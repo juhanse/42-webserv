@@ -1,6 +1,13 @@
 #include "HttpRequest.hpp"
 
-HttpRequest::HttpRequest() {}
+HttpRequest::HttpRequest(): _contentLength(0),
+							_method(""),
+							_uri(""),
+							_query(""),
+							_protocol(""),
+							_body(""),
+							_headers(),
+							_error(0) {}
 
 HttpRequest::~HttpRequest() {}
 
@@ -13,35 +20,55 @@ void	HttpRequest::setContentLength(std::string token) {
 	ss >> _contentLength;
 }
 
-void	HttpRequest::parse(const std::string& rawData) {
-	std::istringstream stream(rawData);
+bool	HttpRequest::parse(const std::string& rawRequest) {
+	std::istringstream stream(rawRequest);
 	std::string line;
 
 	if (std::getline(stream, line)) {
+		if (line.empty())
+			return (false);
 		std::istringstream lineStream(line);
-		lineStream >> _method >> _path >> _protocol;
+		lineStream >> _method >> _uri >> _protocol;
 
-		size_t questionMarkPos = _path.find('?');
+		if (_method.empty() || _uri.empty() || _protocol.empty())
+			return (false);
+
+		if (!lineStream.eof())
+			return (false);
+
+		if (_uri.find("..") != std::string::npos)
+			return (false);
+
+		size_t questionMarkPos = _uri.find('?');
 		if (questionMarkPos != std::string::npos) {
-			_query = _path.substr(questionMarkPos + 1);
-			_path = _path.substr(0, questionMarkPos);
+			_query = _uri.substr(questionMarkPos + 1);
+			_uri = _uri.substr(0, questionMarkPos);
 		}
+
+		if (!_protocol.compare("HTTP/1.0"))
+			return (false); //error 505 ?
 	}
+	else
+		return (false);
 
 	while (std::getline(stream, line) && line != "\r" && !line.empty()) {
-		size_t colonPos = line.find(':');
-		if (colonPos != std::string::npos) {
-			std::string key = line.substr(0, colonPos);
-			std::string value = line.substr(colonPos + 2);
+		size_t tag = line.find(':');
+		if (tag != std::string::npos) {
+			std::string key = line.substr(0, tag);
+			std::string value = line.substr(tag + 2);
 
 			if (!value.empty() && value[value.size() - 1] == '\r') {
 				value.erase(value.size() - 1);
 			}
 			_headers[key] = value;
 		}
+		else
+			return (false);
 	}
 
 	std::stringstream bodyStream;
 	bodyStream << stream.rdbuf();
 	_body = bodyStream.str();
+
+	return (true);
 }

@@ -12,18 +12,6 @@ Webserver::~Webserver() {
 		close(_pollWatch[i].fd);
 }
 
-int	Webserver::setNonBlock(int fd) {
-	int	flags = fcntl(fd, F_GETFL, 0);
-	if (flags == -1 || fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
-		return (perror("fcntl()"), -1);
-	return (0);
-}
-
-void	Webserver::sendToWatchList(int fd) {
-	pollfd	newFd = {fd, POLLIN, 0};
-	_pollWatch.push_back(newFd);
-}
-
 int	Webserver::newListenSock(int port) {
 	int	fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd == -1)
@@ -49,29 +37,6 @@ int	Webserver::newListenSock(int port) {
 	return (fd);
 }
 
-bool	Webserver::isListenSock(int fd) {
-	if (_listenFds.find(fd) != _listenFds.end())
-		return (true);
-	return (false);
-}
-
-void	Webserver::newClient(int listFd) {
-	ServerConfig*	config = _listenFds[listFd];
-
-	struct sockaddr_in	client_addr;
-	socklen_t sockLen = sizeof(client_addr);
-	int	client_fd = accept(listFd, reinterpret_cast<sockaddr *>(&client_addr), &sockLen); //protect it?
-	setNonBlock(client_fd); //define what to do in case of failure?
-
-	// char* ip = inet_ntoa(client_addr.sin_addr);
-	// int port = ntohs(client_addr.sin_port);
-	Client*	client = new Client(client_fd); //add ip, port, config ?
-	_clients[client_fd] = client;
-
-	sendToWatchList(client_fd);
-	std::cout << "New client " << client_fd << " connected" << std::endl;
-}
-
 void	Webserver::closeClient(int fd) {
 	std::map<int, Client*>::iterator it_map = _clients.find(fd);
 	if (it_map != _clients.end()) {
@@ -90,6 +55,19 @@ void	Webserver::closeClient(int fd) {
 	close(fd);
 }
 
+void	Webserver::newClient(int listFd) {
+	struct sockaddr_in	client_addr;
+	socklen_t sockLen = sizeof(client_addr);
+	int	client_fd = accept(listFd, reinterpret_cast<sockaddr *>(&client_addr), &sockLen); //protect it?
+	setNonBlock(client_fd); //define what to do in case of failure?
+
+	Client*	client = new Client(client_fd);
+	_clients[client_fd] = client;
+
+	sendToWatchList(client_fd);
+	std::cout << "New client " << client_fd << " connected" << std::endl;
+}
+
 int Webserver::newServ(ServerConfig* config) {	
 	int	listen_fd = newListenSock(config->port);
 	if (listen_fd == -1) {
@@ -103,15 +81,6 @@ int Webserver::newServ(ServerConfig* config) {
 	std::cout << "Server listening on port " << config->port << std::endl;
 
 	return (0);
-}
-
-void	Webserver::switchToPollout(int fd) {
-	for (size_t i = 0; i < _pollWatch.size(); i++) {
-		if (_pollWatch[i].fd == fd) {
-			_pollWatch[i].events = POLLOUT;
-			return ;
-		}
-	}
 }
 
 void	Webserver::sendResponse(int fd) {
@@ -129,7 +98,7 @@ void	Webserver::receiveRequest(int fd) {
 	std::map<int, Client*>::iterator it = _clients.find(fd);
 	if (it == _clients.end())
 		return ;
-	
+
 	Client* client = it->second;
 	if (client->getStatus() == DONE)
 		closeClient(fd);
@@ -138,24 +107,10 @@ void	Webserver::receiveRequest(int fd) {
 		client->readRequest();
 
 	if (client->getStatus() == PROCESSING)
-		client->processRequest(); //full parsing Http
+		client->processRequest();
 
 	if (client->getStatus() == WRITING)
 		switchToPollout(fd);
-}
-
-void	Webserver::closeTimedOut() {
-	for (std::map<int, Client*>::iterator it = _clients.begin();
-		it != _clients.end(); ) {
-			if (it->second->hasTimedOut()) {
-				std::cout << "Client " << it->first << " has timed out" << std::endl;
-				int fd = it->first;
-				++it;
-				closeClient(fd);
-			}
-			else
-				++it;
-		}
 }
 
 void	Webserver::runServ() {
@@ -175,7 +130,7 @@ void	Webserver::runServ() {
 		}
 
 		else {
-			for (int i = 0; i < _pollWatch.size(); i++) {
+			for (size_t i = 0; i < _pollWatch.size(); i++) {
 				int		fd = _pollWatch[i].fd;
 				short	revents = _pollWatch[i].revents;
 				bool	isListen = isListenSock(fd);

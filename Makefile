@@ -15,6 +15,7 @@ SRC =	Client.cpp				\
 		HttpResponse.cpp		\
 		main.cpp				\
 		ResponseGenerator.cpp	\
+		Webserver_utils.cpp		\
 		Webserver.cpp			\
 
 SRCS = $(addprefix $(PATH_SRCS), $(SRC))
