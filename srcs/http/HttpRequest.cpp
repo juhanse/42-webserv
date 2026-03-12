@@ -4,6 +4,34 @@ HttpRequest::HttpRequest() {}
 
 HttpRequest::~HttpRequest() {}
 
+void	HttpRequest::setMethod(std::string token) {
+	_method = token;
+}
+
+void	HttpRequest::setContentLength(std::string token) {
+	std::stringstream	ss(token);
+	ss >> _contentLength;
+}
+
+std::string	HttpRequest::getCookie(const std::string& key) const {
+    std::map<std::string, std::string>::const_iterator it = _headers.find("Cookie");
+    if (it != _headers.end()) {
+        std::string cookies = it->second;
+        size_t pos = cookies.find(key + "=");
+
+        if (pos != std::string::npos) {
+            size_t start = pos + key.length() + 1;
+            size_t end = cookies.find(";", start);
+	
+            if (end == std::string::npos) {
+                end = cookies.length();
+            }
+            return cookies.substr(start, end - start);
+        }
+    }
+    return "";
+}
+
 void	HttpRequest::parse(const std::string& rawData) {
 	std::istringstream stream(rawData);
 	std::string line;
