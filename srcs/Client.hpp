@@ -1,10 +1,11 @@
 #pragma once
 
 #include <iostream>
-#include "HttpRequest.hpp"
-#include "HttpResponse.hpp"
 #include <sstream>
 #include <sys/socket.h>
+#include "http/HttpRequest.hpp"
+#include "http/HttpResponse.hpp"
+#include "http/ResponseGenerator.hpp"
 
 #define TIMEOUT 60
 
@@ -42,12 +43,10 @@ class	Client {
 		bool		findContentLength(std::string headers);
 		void		handleRequest();
 		bool		isCompleted();
-		bool		parseRequest();
-		bool		parseRequestLine();
 		void		resetActivity();
 
 	public:
-		Client(int fd);
+		Client(int fd, ServerConfig* config);
 		~Client();
 
 		int			getStatus() const {return _status; };

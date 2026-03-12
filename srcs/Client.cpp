@@ -1,11 +1,12 @@
 #include "Client.hpp"
 
-Client::Client(int fd):	_fd(fd), 
-						_lastActive(time(NULL)),
-						_status(READING),
-						_recvBuff(""),
-						_sendBuff(""),
-						_sendOffset(0) 
+Client::Client(int fd, ServerConfig* config):	_fd(fd), 
+												_lastActive(time(NULL)),
+												_status(READING),
+												_recvBuff(""),
+												_sendBuff(""),
+												_sendOffset(0),
+												_config(config)
 {
 	_request = new HttpRequest();
 	_response = new HttpResponse();
@@ -93,7 +94,7 @@ bool	Client::isCompleted() {
 			if (!findContentLength(headers))
 				return (_response->setStatusCode(411), true); //Length missing 400 vs 411?
 
-			if (_request->getContentLength() > _config->client_max_body_size)
+			if (_request->getContentLength() > _config->getClientMaxBodysize())
 				return (_response->setStatusCode(400), true); //400 vs 413 Payload too large?
 
 			if (bodyIsFull(endTag + 4, _request->getContentLength()))
@@ -108,7 +109,12 @@ bool	Client::isCompleted() {
 	}
 }
 
-void	Client::handleRequest() {}
+void	Client::handleRequest() {
+	ResponseGenerator	generator;
+	HttpResponse		res = generator.generate(*_request, *_config);
+
+	*_response = res;
+}
 
 void	Client::processRequest() {
 	int	code = _response->getStatusCode();
@@ -118,7 +124,7 @@ void	Client::processRequest() {
  
 	else {
 		if (_request->parse(_recvBuff))
-			handleRequest(); //TO DO
+			handleRequest();
 		else {
 			_response->setStatusCode(_request->getError());
 			_response->generateErrorPage(_response->getStatusCode(), *_config);
