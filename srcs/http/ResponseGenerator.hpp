@@ -22,9 +22,10 @@ class ResponseGenerator {
         void			_freeEnv(char** envp);
 
 		HttpResponse _handleGET(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
-		HttpResponse _handleUPDATE(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
+		HttpResponse _handlePOST(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
 		HttpResponse _handleDELETE(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
 		HttpResponse _handleCGI(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
+		HttpResponse _handleUpload(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config, const std::string& boundary);
 
 	public:
 		ResponseGenerator();
