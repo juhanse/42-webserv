@@ -43,6 +43,14 @@ std::string ResponseGenerator::_readFile(const std::string& path) {
 	return buffer.str();
 }
 
+std::string ResponseGenerator::_getScriptDirectory(const std::string& scriptPath) {
+    size_t pos = scriptPath.find_last_of('/');
+    if (pos != std::string::npos) {
+        return scriptPath.substr(0, pos);
+    }
+    return ".";
+}
+
 char** ResponseGenerator::_createCGIEnv(const HttpRequest& req, const LocationConfig& loc, const std::string& scriptPath) {
 	std::map<std::string, std::string> envMap;
 
@@ -170,20 +178,6 @@ HttpResponse ResponseGenerator::_handleGET(const HttpRequest& req, const Locatio
 	res.setStatusCode(200);
 	res.setBody(content);
 	res.setContentType(fullPath);
-	
-	return res;
-}
-
-HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
-	HttpResponse res;
-	std::string scriptPath = loc.getRoot() + req.getPath();
-
-	// Check si le script existe
-	struct stat s;
-	if (stat(scriptPath.c_str(), &s) != 0) {
-		res.generateErrorPage(404, config);
-		return res;
-	}
 
 	return res;
 }
@@ -299,4 +293,142 @@ HttpResponse ResponseGenerator::_handleDELETE(const HttpRequest& req, const Loca
     }
 
     return res;
+}
+
+HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
+	HttpResponse res;
+	std::string scriptPath = loc.getRoot() + req.getPath();
+
+	struct stat s;
+	if (stat(scriptPath.c_str(), &s) != 0) {
+		res.generateErrorPage(404, config);
+		return res;
+	}
+
+	size_t dot = scriptPath.find_last_of('.');
+	std::string ext = "";
+	if (dot != std::string::npos) {
+		ext = scriptPath.substr(dot);
+	}
+
+	std::string cgiExec = "";
+	const std::map<std::string, std::string>& cgiExts = loc.getCgiExtensions();
+	std::map<std::string, std::string>::const_iterator it = cgiExts.find(ext);
+	
+	if (it != cgiExts.end()) {
+		cgiExec = it->second;
+	} else {
+		res.generateErrorPage(500, config);
+		return res;
+	}
+
+	char** envp = _createCGIEnv(req, loc, scriptPath);
+
+	int pipe_in[2];
+	int pipe_out[2];
+
+	if (pipe(pipe_in) == -1 || pipe(pipe_out) == -1) {
+		_freeEnv(envp);
+		res.generateErrorPage(500, config);
+		return res;
+	}
+
+	pid_t pid = fork();
+
+	if (pid == -1) {
+		_freeEnv(envp);
+		close(pipe_in[0]); close(pipe_in[1]);
+		close(pipe_out[0]); close(pipe_out[1]);
+		res.generateErrorPage(500, config);
+		return res;
+	}
+
+	if (pid == 0) {
+		dup2(pipe_in[0], STDIN_FILENO);
+		dup2(pipe_out[1], STDOUT_FILENO);
+
+		close(pipe_in[0]); close(pipe_in[1]);
+		close(pipe_out[0]); close(pipe_out[1]);
+
+		std::string scriptDir = _getScriptDirectory(scriptPath);
+		if (chdir(scriptDir.c_str()) == -1) {
+			_freeEnv(envp);
+			_exit(1);
+		}
+
+		std::string scriptName = scriptPath;
+		size_t pos = scriptPath.find_last_of('/');
+		if (pos != std::string::npos) {
+			scriptName = scriptPath.substr(pos + 1);
+		}
+
+		char* args[3];
+		args[0] = const_cast<char*>(cgiExec.c_str());
+		args[1] = const_cast<char*>(scriptName.c_str());
+		args[2] = NULL;
+
+		execve(args[0], args, envp);
+		
+		_freeEnv(envp);
+		_exit(1);
+	}
+	else {
+        close(pipe_in[0]);
+        close(pipe_out[1]);
+
+        if (req.getMethod() == "POST") {
+            write(pipe_in[1], req.getBody().c_str(), req.getBody().length());
+        }
+        close(pipe_in[1]); 
+
+        char buffer[4096];
+        std::string cgiOutput;
+        int bytesRead;
+        
+        while ((bytesRead = read(pipe_out[0], buffer, 4096)) > 0) {
+            cgiOutput.append(buffer, bytesRead);
+        }
+        close(pipe_out[0]);
+
+        int status;
+        waitpid(pid, &status, 0);
+
+        _freeEnv(envp);
+
+        size_t headerEnd = cgiOutput.find("\r\n\r\n");
+        if (headerEnd != std::string::npos) {
+            std::string cgiHeaders = cgiOutput.substr(0, headerEnd);
+            std::string cgiBody = cgiOutput.substr(headerEnd + 4);
+            
+            size_t ctPos = cgiHeaders.find("Content-Type: ");
+            if (ctPos != std::string::npos) {
+                size_t ctEnd = cgiHeaders.find("\r\n", ctPos);
+                if (ctEnd == std::string::npos) ctEnd = cgiHeaders.length();
+                std::string ct = cgiHeaders.substr(ctPos + 14, ctEnd - (ctPos + 14));
+                res.setHeader("Content-Type", ct);
+            }
+            res.setBody(cgiBody);
+        } else {
+            res.setBody(cgiOutput);
+        }
+
+        res.setStatusCode(200);
+        return res;
+    }
+	// else {
+	// 	close(pipe_in[0]);
+	// 	close(pipe_out[1]);
+
+	// 	fcntl(pipe_in[1], F_SETFL, O_NONBLOCK);
+	// 	fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
+
+	// 	_freeEnv(envp);
+
+	// 	res.setStatusCode(100);
+	// 	res.setCgiPid(pid);
+	// 	res.setCgiFdIn(pipe_in[1]);
+	// 	res.setCgiFdOut(pipe_out[0]);
+		
+	// 	return res;
+	// }
 }
