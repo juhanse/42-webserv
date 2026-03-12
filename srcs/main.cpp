@@ -43,36 +43,6 @@ int main(int ac, char **av) {
 	
 	webserv.runServ();
 
-	// ServerConfig config;
-	// config.root = "./srcs/www";
-	// config.port = 8080;
-	// config.client_max_body_size = 50;
-
-	// Location locRoot;
-	// locRoot.path = "/";
-	// locRoot.root = "./srcs/www";
-	// locRoot.methods.push_back("GET");
-	// locRoot.index = "index.html";
-	// config.locations.push_back(locRoot);
-
-    // Location locTraitement;
-    // locTraitement.path = "/traitement";
-    // locTraitement.root = "./srcs/www/uploads";
-    // locTraitement.methods.push_back("POST");
-    // config.locations.push_back(locTraitement);
-
-	// Location locCgi;
-	// locCgi.path = "/cgi-bin";
-	// locCgi.root = "./srcs/www/cgi-bin";
-	// locCgi.methods.push_back("GET");
-	// locCgi.methods.push_back("POST");
-	// locCgi.cgi_ext = ".py";
-	// locCgi.cgi_path = "/usr/bin/python3";
-	// config.locations.push_back(locCgi);
-
-	// std::vector<ServerConfig*> configurations;
-	// configurations.push_back(&config);
-
 	//clean and free? in webserv destructor?
 
 	return (0);

@@ -1,10 +1,12 @@
 #include "Client.hpp"
 
-Client::Client(int fd, ServerConfig* config):
-	_fd(fd), 
-	_lastActive(time(NULL)),
-	_status(READING),
-	_config(config)
+Client::Client(int fd, ServerConfig* config):	_fd(fd), 
+												_lastActive(time(NULL)),
+												_status(READING),
+												_recvBuff(""),
+												_sendBuff(""),
+												_sendOffset(0),
+												_config(config)
 {
 	_request = new HttpRequest();
 	_response = new HttpResponse();
@@ -13,10 +15,6 @@ Client::Client(int fd, ServerConfig* config):
 Client::~Client() {
 	delete	_request;
 	delete	_response;
-}
-
-int		Client::getStatus() const {
-	return (_status);
 }
 
 void	Client::resetActivity() {
@@ -95,10 +93,13 @@ bool	Client::isCompleted() {
 			headers = _recvBuff.substr(0, endTag);
 			if (!findContentLength(headers))
 				return (_response->setStatusCode(411), true); //Length missing 400 vs 411?
-			// if (_request->getContentLength() > _config->client_max_body_size)
-			// 	return (_response->setStatusCode(400), true); //400 vs 413 Payload too large?
+
+			if (_request->getContentLength() > _config->getClientMaxBodysize())
+				return (_response->setStatusCode(400), true); //400 vs 413 Payload too large?
+
 			if (bodyIsFull(endTag + 4, _request->getContentLength()))
 				return (true);
+			
 			return (false);	
 		case UNKNOWN:
 		default:
@@ -108,26 +109,28 @@ bool	Client::isCompleted() {
 	}
 }
 
+void	Client::handleRequest() {
+	ResponseGenerator	generator;
+	HttpResponse		res = generator.generate(*_request, *_config);
+
+	*_response = res;
+}
+
 void	Client::processRequest() {
-	//if (_response->getStatusCode() != 200)
-		//generate response error + status WRITING
+	int	code = _response->getStatusCode();
 
-	//full parsing ici -> if parsing no error
-		//handle request selon si GET, POST ou DELETE
-	//else
-		//status code aura ete maj dans le parsing 
-		//generate response error
-	
-	//_status = WRITING;
-
-
-    _request->parse(_recvBuff);
-
-    ResponseGenerator generator;
-    HttpResponse res = generator.generate(*_request, *_config);
-
-    *_response = res;
-    _status = WRITING;
+	if (code >= 400)
+		_response->generateErrorPage(code, *_config);
+ 
+	else {
+		if (_request->parse(_recvBuff))
+			handleRequest();
+		else {
+			_response->setStatusCode(_request->getError());
+			_response->generateErrorPage(_response->getStatusCode(), *_config);
+		}
+	}
+	_status = WRITING;
 }
 
 void	Client::readRequest() {
@@ -161,15 +164,23 @@ void	Client::writeResponse() {
 	}
 
 	size_t	leftover = _sendBuff.size() - _sendOffset;
-	size_t	bytes = send(_fd, _sendBuff.c_str(), leftover, 0); //check flags
+	size_t	bytes = send(_fd, _sendBuff.c_str(), leftover, 0);
 
 	if (bytes > 0) {
-        // On retient combien d'octets sont partis sur le réseau
-        _sendOffset += bytes;
-    }
+		_sendOffset += bytes;
+		resetActivity();
 
-	// Si on a tout envoyé (ou s'il y a une erreur fatale sur le socket)
-    if (_sendOffset == _sendBuff.size() || bytes <= 0) {
-        _status = DONE; // <--- C'est ça qui dira à Webserver de fermer la connexion !
-    }
+		if (_sendOffset >= _sendBuff.size()) {
+			std::cout << "Response sent" << std::endl;
+			_status = DONE;
+		}
+	}
+
+	else if (bytes == 0)
+		_status = DONE;
+	
+	else {
+		perror("send()");
+		_status = DONE;
+	}
 }

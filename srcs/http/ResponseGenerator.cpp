@@ -244,6 +244,7 @@ HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const Locatio
 
 	// 	return res;
 	// }
+	return res;
 }
 
 HttpResponse ResponseGenerator::_handlePostUpload(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {

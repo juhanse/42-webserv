@@ -15,6 +15,7 @@ SRC =	Client.cpp				\
 		http/HttpResponse.cpp		\
 		main.cpp				\
 		http/ResponseGenerator.cpp	\
+		Webserver_utils.cpp	\
 		Webserver.cpp			\
 		parse/ConfigParser.cpp parse/ParseListen.cpp parse/ParseServerName.cpp \
 		parse/ParseRoot.cpp parse/ParseIndex.cpp parse/ParseMaxSize.cpp parse/ParseErrorPage.cpp \
@@ -27,19 +28,19 @@ OBJS = $(addprefix $(PATH_OBJS), $(SRC:.cpp=.o))
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
+	@$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
 	@echo "$(COLOUR_GREEN)Compiled ✅$(COLOUR_END)"
 
 $(PATH_OBJS)%.o: $(PATH_SRCS)%.cpp
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(PATH_OBJS)
+	@rm -rf $(PATH_OBJS)
 	@echo "$(COLOUR_RED)Cleaned 🧹$(COLOUR_END)"
 
 fclean: clean
-	rm -rf $(NAME)
+	@rm -rf $(NAME)
 	@echo "$(COLOUR_RED)Cleaned all 🧹$(COLOUR_END)"
 
 re: fclean all

@@ -1,11 +1,11 @@
 #pragma once
 
 #include <iostream>
+#include <sstream>
+#include <sys/socket.h>
 #include "http/HttpRequest.hpp"
 #include "http/HttpResponse.hpp"
 #include "http/ResponseGenerator.hpp"
-#include <sstream>
-#include <sys/socket.h>
 
 #define TIMEOUT 60
 
@@ -26,8 +26,6 @@ enum Method {
 class	Client {
 	private:
 		int				_fd;
-		// int			_port;
-		// std::string	_ip;
 		time_t			_lastActive;
 
 		Status			_status;
@@ -43,6 +41,7 @@ class	Client {
 		bool		bodyIsFull(size_t bodyStart, size_t expectedBody) const;
  		int			findMethod() const;
 		bool		findContentLength(std::string headers);
+		void		handleRequest();
 		bool		isCompleted();
 		void		resetActivity();
 
@@ -50,7 +49,7 @@ class	Client {
 		Client(int fd, ServerConfig* config);
 		~Client();
 
-		int			getStatus() const;
+		int			getStatus() const {return _status; };
 		bool		hasTimedOut() const;
 		void		readRequest();
 		void		processRequest();
