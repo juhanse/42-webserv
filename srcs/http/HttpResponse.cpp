@@ -58,15 +58,23 @@ void HttpResponse::setCgiFdOut(int fd) { _cgiFdOut = fd; }
 
 std::string HttpResponse::getRawResponse() const {
 	std::stringstream res;
+	bool hasBody = (_status_code != 204 && _status_code >= 200);
 
 	res << "HTTP/1.0 " << _status_code << " " << _getStatusMessage(_status_code) << "\r\n";
 	
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it) {
+		if (!hasBody && (it->first == "Content-Length" || it->first == "Content-Type")) {
+			continue;
+		}
+
 		res << it->first << ": " << it->second << "\r\n";
 	}
 
 	res << "\r\n";
-	res << _body;
+	
+	if (hasBody) {
+		res << _body;
+	}
 
 	return res.str();
 }
