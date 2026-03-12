@@ -43,6 +43,15 @@ void HttpResponse::setBody(const std::string& content) {
 	setHeader("Content-Length", ss.str());
 }
 
+void HttpResponse::setCookie(const std::string& key, const std::string& value, int max_age) {
+    std::stringstream ss;
+    ss << key << "=" << value << "; Path=/; HttpOnly";
+    if (max_age > 0) {
+        ss << "; Max-Age=" << max_age;
+    }
+    setHeader("Set-Cookie", ss.str());
+}
+
 std::string HttpResponse::getRawResponse() const {
 	std::stringstream res;
 

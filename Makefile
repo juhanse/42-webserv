@@ -20,6 +20,7 @@ SRC =	Client.cpp				\
 		parse/ConfigParser.cpp parse/ParseListen.cpp parse/ParseServerName.cpp \
 		parse/ParseRoot.cpp parse/ParseIndex.cpp parse/ParseMaxSize.cpp parse/ParseErrorPage.cpp \
 		parse/ParseLocation.cpp config/ServerConfig.cpp config/LocationConfig.cpp utils/utils.cpp utils/debugPrint.cpp \
+		session/SessionManager.cpp
 
 SRCS = $(addprefix $(PATH_SRCS), $(SRC))
 OBJS = $(addprefix $(PATH_OBJS), $(SRC:.cpp=.o))
