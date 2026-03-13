@@ -8,6 +8,12 @@ std::vector<std::string> ConfigParser::tokenize(const std::string& input)
 	for (size_t i = 0; i < input.size(); ++i)
 	{
 		char  c = input[i];
+
+		if (c == '#') {
+			while (i < input.size() && input[i] != '\n')
+				i++;
+			continue ;
+		}
 		if (std::isspace(c))
 		{
 			if (!token.empty())
@@ -40,7 +46,7 @@ void	parseTokens(std::vector<std::string>& tokens, std::vector<ServerConfig>& se
 	while (i < tokens.size())
 	{
 		if (tokens[i] != "server")
-			throw (std::runtime_error("Expected 'server'"));
+			throw (std::runtime_error("Expected 'server' at: " + tokens[i]));
 		i++;
 		if (i >= tokens.size() || tokens[i] != "{")
 			throw std::runtime_error("Expected '{'");
@@ -77,7 +83,7 @@ void	parseTokens(std::vector<std::string>& tokens, std::vector<ServerConfig>& se
 			else if (tokens[i] == ";")
 				throw (std::runtime_error("No ';' are allowed to roam the file aimelessly."));
 			else
-				throw (std::runtime_error("Unkown directive : " + tokens[i]));
+				throw (std::runtime_error("Unknown directive : " + tokens[i]));
 		}
 		if (i >= tokens.size() || tokens[i] != "}")
 			throw std::runtime_error("Expected '}' at end of server block");
@@ -97,6 +103,19 @@ static void	checkMissingDirectives(std::vector<ServerConfig>& servers)
 	}
 }
 
+static void	checkDuplicatePort(std::vector<ServerConfig>& servers)
+{
+	std::set<int> ports;
+
+	for (size_t i = 0; i < servers.size(); ++i)
+	{
+		int port = servers[i].getPort();
+		if (ports.count(port))
+			throw (std::runtime_error("Duplicate ports in different server blocs "));
+		ports.insert(port);
+	}
+}
+
 std::vector<ServerConfig> ConfigParser::parse(const std::string& filename)
 {
 	std::vector<ServerConfig>	servers;
@@ -109,12 +128,13 @@ std::vector<ServerConfig> ConfigParser::parse(const std::string& filename)
 	buffer << file.rdbuf();
 	std::string content = buffer.str();
 
-	std::vector<std::string> tokens = tokenize(content);
+	if (content.empty())
+		throw (std::runtime_error("Incomplete config file."));
 
-	// for (size_t i = 0; i < tokens.size(); ++i)
-	// 	std::cout << "[" << tokens[i] << "]" << std::endl;
+	std::vector<std::string> tokens = tokenize(content);
 
 	parseTokens(tokens, servers);
 	checkMissingDirectives(servers);
+	checkDuplicatePort(servers);
 	return (servers);
 }

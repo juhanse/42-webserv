@@ -23,8 +23,8 @@ void	parseRoot(const std::vector<std::string>& tokens, size_t& i, T& config, boo
 	if (i >= tokens.size() || tokens[i] != ";")
 		throw (std::runtime_error("Missing ';' after root directive."));
 
+	root_set = true;
 	i++;
 }
-
 
 #endif

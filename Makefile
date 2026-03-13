@@ -1,6 +1,6 @@
 NAME = webserv
 CC = c++
-CFLAGS = -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98
 
 COLOUR_GREEN=\033[0;32m
 COLOUR_RED=\033[0;31m
