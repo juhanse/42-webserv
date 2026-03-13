@@ -1,4 +1,3 @@
-#include "WebserverSignals.cpp"
 #include "Webserver.hpp"
 #include "parse/ConfigParser.hpp"
 #include "config/ServerConfig.hpp"

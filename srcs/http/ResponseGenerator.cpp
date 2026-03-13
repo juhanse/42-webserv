@@ -52,6 +52,7 @@ std::string ResponseGenerator::_getScriptDirectory(const std::string& scriptPath
 }
 
 char** ResponseGenerator::_createCGIEnv(const HttpRequest& req, const LocationConfig& loc, const std::string& scriptPath) {
+	(void)loc;
 	std::map<std::string, std::string> envMap;
 
 	envMap["REQUEST_METHOD"] = req.getMethod();

@@ -17,6 +17,7 @@ SRC =	Client.cpp					\
 		http/ResponseGenerator.cpp	\
 		Webserver.cpp				\
 		WebserverCGI.cpp			\
+		WebserverSignals.cpp		\
 		WebserverUtils.cpp			\
 		parse/ConfigParser.cpp parse/ParseListen.cpp parse/ParseServerName.cpp 											\
 		parse/ParseRoot.cpp parse/ParseIndex.cpp parse/ParseMaxSize.cpp parse/ParseErrorPage.cpp 						\
