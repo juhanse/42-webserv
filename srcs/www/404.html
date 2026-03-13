@@ -1,21 +1,70 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>404 - Page Non Trouvée</title>
-    <style>
-        body { font-family: 'Courier New', Courier, monospace; background-color: #1a1a1a; color: #ff4d4d; text-align: center; padding-top: 100px; }
-        h1 { font-size: 50px; margin-bottom: 10px; }
-        p { color: #ccc; }
-        .glitch { border: 1px solid #ff4d4d; display: inline-block; padding: 10px 20px; }
-    </style>
-</head>
-<body>
-    <h1>404</h1>
-    <div class="glitch">
-        ERREUR : RESSOURCE INTROUVABLE
-    </div>
-    <p>Le serveur Webserv n'a pas pu localiser le fichier demandé.</p>
-    <p><a href="/" style="color: #007bff;">Retourner à l'accueil</a></p>
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>404 - Page Introuvable</title>
+        
+        <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.3/dist/dotlottie-wc.js" type="module"></script>
+
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                color: #e94560;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                text-align: center;
+            }
+
+            h1 {
+                font-size: 4rem;
+                margin-bottom: 0;
+            }
+
+            p {
+                font-size: 1.2rem;
+                color: #a2a2bd;
+                margin-top: 10px;
+                margin-bottom: 30px;
+            }
+
+            a.btn {
+                background-color: #e94560;
+                color: #ffffff;
+                text-decoration: none;
+                padding: 12px 24px;
+                border-radius: 25px;
+                font-weight: bold;
+                font-size: 1rem;
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
+
+            a.btn:hover {
+                background-color: #ff5270;
+                transform: translateY(-2px);
+            }
+
+            .lottie-container {
+                width: 300px;
+                height: 300px;
+                margin-bottom: 20px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="lottie-container">
+            <dotlottie-wc src="https://lottie.host/36ae7f02-f30c-4df4-8cb9-471aabdb1259/FE18x2DUNy.lottie" style="width: 300px;height: 300px" autoplay loop></dotlottie-wc>
+        </div>
+
+        <h1>Oups ! 404</h1>
+        <p>La page que tu cherches a été aspirée par un trou noir.</p>
+        
+        <a href="/" class="btn">Retour à l'accueil</a>
+    </body>
 </html>

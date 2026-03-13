@@ -91,3 +91,13 @@ bool	HttpRequest::parse(const std::string& rawRequest) {
 
 	return (true);
 }
+
+std::string HttpRequest::getHeader(const std::string& key) const {
+	std::map<std::string, std::string>::const_iterator it = _headers.find(key);
+
+	if (it != _headers.end()) {
+		return it->second;
+	}
+
+	return ""; 
+}

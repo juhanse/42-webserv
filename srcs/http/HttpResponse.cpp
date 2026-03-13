@@ -1,6 +1,6 @@
 #include "HttpResponse.hpp"
 
-HttpResponse::HttpResponse() : _status_code(200) {
+HttpResponse::HttpResponse() : _status_code(200), _cgiPid(-1), _cgiFdIn(-1), _cgiFdOut(-1) {
 	setHeader("Server", "Webserv/1.0");
 }
 
@@ -52,17 +52,29 @@ void HttpResponse::setCookie(const std::string& key, const std::string& value, i
     setHeader("Set-Cookie", ss.str());
 }
 
+void HttpResponse::setCgiPid(pid_t pid) { _cgiPid = pid; }
+void HttpResponse::setCgiFdIn(int fd) { _cgiFdIn = fd; }
+void HttpResponse::setCgiFdOut(int fd) { _cgiFdOut = fd; }
+
 std::string HttpResponse::getRawResponse() const {
 	std::stringstream res;
+	bool hasBody = (_status_code != 204 && _status_code >= 200);
 
 	res << "HTTP/1.0 " << _status_code << " " << _getStatusMessage(_status_code) << "\r\n";
 	
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it) {
+		if (!hasBody && (it->first == "Content-Length" || it->first == "Content-Type")) {
+			continue;
+		}
+
 		res << it->first << ": " << it->second << "\r\n";
 	}
 
 	res << "\r\n";
-	res << _body;
+	
+	if (hasBody) {
+		res << _body;
+	}
 
 	return res.str();
 }

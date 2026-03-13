@@ -43,6 +43,55 @@ std::string ResponseGenerator::_readFile(const std::string& path) {
 	return buffer.str();
 }
 
+std::string ResponseGenerator::_getScriptDirectory(const std::string& scriptPath) {
+    size_t pos = scriptPath.find_last_of('/');
+    if (pos != std::string::npos) {
+        return scriptPath.substr(0, pos);
+    }
+    return ".";
+}
+
+char** ResponseGenerator::_createCGIEnv(const HttpRequest& req, const LocationConfig& loc, const std::string& scriptPath) {
+	std::map<std::string, std::string> envMap;
+
+	envMap["REQUEST_METHOD"] = req.getMethod();
+	envMap["SCRIPT_FILENAME"] = scriptPath;
+	envMap["SERVER_PROTOCOL"] = "HTTP/1.0";
+	envMap["PATH_INFO"] = req.getPath();
+	envMap["QUERY_STRING"] = req.getQuery();
+
+	if (req.getMethod() == "POST") {
+		std::stringstream ss;
+		ss << req.getContentLength();
+		envMap["CONTENT_LENGTH"] = ss.str();
+		envMap["CONTENT_TYPE"] = req.getHeader("Content-Type");
+	}
+
+	char** envp = new char*[envMap.size() + 1];
+	int i = 0;
+
+	for (std::map<std::string, std::string>::iterator it = envMap.begin(); it != envMap.end(); ++it) {
+		std::string envStr = it->first + "=" + it->second;
+
+		envp[i] = new char[envStr.length() + 1];
+		std::strcpy(envp[i], envStr.c_str());
+		i++;
+	}
+	envp[i] = NULL;
+
+	return envp;
+}
+
+void ResponseGenerator::_freeEnv(char** envp) {
+	if (!envp) return;
+
+	for (int i = 0; envp[i] != NULL; ++i) {
+		delete[] envp[i];
+	}
+
+	delete[] envp;
+}
+
 HttpResponse ResponseGenerator::generate(const HttpRequest& req, const ServerConfig& config) {
     HttpResponse res;
 
@@ -81,16 +130,16 @@ HttpResponse ResponseGenerator::generate(const HttpRequest& req, const ServerCon
     }
 
     if (req.getMethod() == "POST") {
-        return _handlePostUpload(req, loc, config);
+        return _handlePOST(req, loc, config);
     }
     else if (req.getMethod() == "DELETE") {
-        return _handleDelete(req, loc, config);
+        return _handleDELETE(req, loc, config);
     }
 
-    return _handleStatic(req, loc, config);
+    return _handleGET(req, loc, config);
 }
 
-HttpResponse ResponseGenerator::_handleStatic(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
+HttpResponse ResponseGenerator::_handleGET(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
 	HttpResponse res;
 	std::string fullPath = loc.getRoot() + req.getPath();
 
@@ -129,98 +178,214 @@ HttpResponse ResponseGenerator::_handleStatic(const HttpRequest& req, const Loca
 	res.setStatusCode(200);
 	res.setBody(content);
 	res.setContentType(fullPath);
-	
+
 	return res;
 }
 
-HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
-	HttpResponse res;
+HttpResponse ResponseGenerator::_handlePOST(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
+	std::string contentType = req.getHeader("Content-Type");
 
-	std::string scriptPath = loc.getRoot() + req.getPath();
-
-	// Check si le script existe
-	struct stat s;
-	if (stat(scriptPath.c_str(), &s) != 0) {
-		res.generateErrorPage(404, config);
-		return res;
+	if (contentType.find("multipart/form-data") != std::string::npos) {
+		size_t pos = contentType.find("boundary=");
+		if (pos != std::string::npos) {
+			std::string boundary = contentType.substr(pos + 9);
+			return _handleUpload(req, loc, config, boundary);
+		}
 	}
 
-	// TODO A : Créer les variables d'environnement (char**)
-	// TODO B : Créer les pipes ( int fd_in[2], fd_out[2] )
-	// TODO C : fork()
-	// if (pid == 0) {
-	//      C'est l'enfant : dup2 des pipes, puis execve(loc.cgi_uri, args, env)
-	//      exit(1); si execve échoue
-	// } 
-	// else {
-	//      C'est le parent : write() le body, waitpid(), puis read() la réponse
-	// }
-	// TODO D : Parser la réponse brute du CGI et remplir 'res'
-
-	res.generateErrorPage(500, config);
+	HttpResponse res;
+	res.setStatusCode(200);
+	res.setBody("<html><body><h1>200 OK</h1><p>Formulaire classique recu avec succes.</p></body></html>");
+	res.setHeader("Content-Type", "text/html");
 	return res;
 }
 
-HttpResponse ResponseGenerator::_handlePostUpload(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
+HttpResponse ResponseGenerator::_handleUpload(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config, const std::string& boundary) {
 	HttpResponse res;
-	std::string fullPath = loc.getRoot() + req.getPath();
+    std::string body = req.getBody();
+    std::string searchBoundary = "--" + boundary;
+
+    std::cout << "--- DEBUG UPLOAD ---" << std::endl;
+    std::cout << "Boundary recu : [" << searchBoundary << "]" << std::endl;
+
+    size_t fnPos = body.find("filename=\"");
+    if (fnPos == std::string::npos) {
+        std::cout << "ECHEC 1 : filename= non trouve dans le body." << std::endl;
+        res.generateErrorPage(400, config);
+        return res;
+    }
+
+    size_t fnStart = fnPos + 10;
+    size_t fnEnd = body.find("\"", fnStart);
+    if (fnEnd == std::string::npos) {
+        std::cout << "ECHEC 2 : fin du nom de fichier non trouvee." << std::endl;
+        res.generateErrorPage(400, config);
+        return res;
+    }
+
+    std::string filename = body.substr(fnStart, fnEnd - fnStart);
+    std::cout << "Fichier detecte : " << filename << std::endl;
+
+    size_t dataStart = body.find("\r\n\r\n", fnEnd);
+    if (dataStart == std::string::npos) {
+        std::cout << "ECHEC 3 : separateur headers/body (\\r\\n\\r\\n) non trouve." << std::endl;
+        res.generateErrorPage(400, config);
+        return res;
+    }
+    dataStart += 4;
+
+    size_t dataEnd = body.find("\r\n" + searchBoundary, dataStart);
+    if (dataEnd == std::string::npos) {
+        std::cout << "ECHEC 4 : fin du fichier / boundary de fin non trouve." << std::endl;
+        res.generateErrorPage(400, config);
+        return res;
+    }
+
+    std::cout << "Taille du fichier a ecrire : " << (dataEnd - dataStart) << " octets." << std::endl;
+
+	std::string basePath = loc.getRoot() + req.getPath();
+    if (!basePath.empty() && basePath[basePath.length() - 1] != '/') {
+        basePath += "/";
+    }
+    std::string fullPath = basePath + filename;
 
 	struct stat s;
-	
-	// Check si le chemin demandé est un dossier existant
-	// Impossible d'écraser un dossier avec le body de la requête
 	if (stat(fullPath.c_str(), &s) == 0 && S_ISDIR(s.st_mode)) {
 		res.generateErrorPage(403, config);
 		return res;
 	}
 
-	// Création ou écrasement du fichier en mode binaire
 	std::ofstream file(fullPath.c_str(), std::ios::out | std::ios::binary);
-	
-	// Si l'ouverture échoue
 	if (!file.is_open()) {
 		res.generateErrorPage(500, config);
 		return res;
 	}
 
-	file << req.getBody();
-	// Le RAII fermera le fichier automatiquement à la fin du bloc, 
-	// mais on peut le faire explicitement par clarté.
+	file.write(body.data() + dataStart, dataEnd - dataStart);
 	file.close();
 
-	// Réponse
 	res.setStatusCode(201);
-
-	std::string html = "<html><body><h1>201 Created</h1><p>Fichier uploade avec succes !</p></body></html>";
-	res.setBody(html);
+	res.setBody("<html><body><h1>201 Created</h1><p>Fichier uploade avec succes !</p></body></html>");
 	res.setHeader("Content-Type", "text/html");
 
 	return res;
 }
 
-HttpResponse ResponseGenerator::_handleDelete(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
+HttpResponse ResponseGenerator::_handleDELETE(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
     HttpResponse res;
     std::string fullPath = loc.getRoot() + req.getPath();
 
     struct stat s;
-    
-    // Check si le fichier existe
     if (stat(fullPath.c_str(), &s) != 0) {
         res.generateErrorPage(404, config);
         return res;
     }
 
-    // Check si c'est un dossier
     if (S_ISDIR(s.st_mode)) {
         res.generateErrorPage(403, config);
         return res;
     }
 
     if (std::remove(fullPath.c_str()) == 0) {
-        res.setStatusCode(204); // "No Content" -> Code standard pour un DELETE réussi et pas besoin de body
+        res.setStatusCode(204);
     } else {
         res.generateErrorPage(403, config);
     }
 
     return res;
+}
+
+HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
+	HttpResponse res;
+	std::string scriptPath = loc.getRoot() + req.getPath();
+
+	struct stat s;
+	if (stat(scriptPath.c_str(), &s) != 0) {
+		res.generateErrorPage(404, config);
+		return res;
+	}
+
+	size_t dot = scriptPath.find_last_of('.');
+	std::string ext = "";
+	if (dot != std::string::npos) {
+		ext = scriptPath.substr(dot);
+	}
+
+	std::string cgiExec = "";
+	const std::map<std::string, std::string>& cgiExts = loc.getCgiExtensions();
+	std::map<std::string, std::string>::const_iterator it = cgiExts.find(ext);
+	
+	if (it != cgiExts.end()) {
+		cgiExec = it->second;
+	} else {
+		res.generateErrorPage(500, config);
+		return res;
+	}
+
+	char** envp = _createCGIEnv(req, loc, scriptPath);
+
+	int pipe_in[2];
+	int pipe_out[2];
+
+	if (pipe(pipe_in) == -1 || pipe(pipe_out) == -1) {
+		_freeEnv(envp);
+		res.generateErrorPage(500, config);
+		return res;
+	}
+
+	pid_t pid = fork();
+
+	if (pid == -1) {
+		_freeEnv(envp);
+		close(pipe_in[0]); close(pipe_in[1]);
+		close(pipe_out[0]); close(pipe_out[1]);
+		res.generateErrorPage(500, config);
+		return res;
+	}
+
+	if (pid == 0) {
+		dup2(pipe_in[0], STDIN_FILENO);
+		dup2(pipe_out[1], STDOUT_FILENO);
+
+		close(pipe_in[0]); close(pipe_in[1]);
+		close(pipe_out[0]); close(pipe_out[1]);
+
+		std::string scriptDir = _getScriptDirectory(scriptPath);
+		if (chdir(scriptDir.c_str()) == -1) {
+			_freeEnv(envp);
+			_exit(1);
+		}
+
+		std::string scriptName = scriptPath;
+		size_t pos = scriptPath.find_last_of('/');
+		if (pos != std::string::npos) {
+			scriptName = scriptPath.substr(pos + 1);
+		}
+
+		char* args[3];
+		args[0] = const_cast<char*>(cgiExec.c_str());
+		args[1] = const_cast<char*>(scriptName.c_str());
+		args[2] = NULL;
+
+		execve(args[0], args, envp);
+		
+		_freeEnv(envp);
+		_exit(1);
+	}
+	else {
+		close(pipe_in[0]);
+		close(pipe_out[1]);
+
+		fcntl(pipe_in[1], F_SETFL, O_NONBLOCK);
+		fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
+
+		_freeEnv(envp);
+
+		res.setStatusCode(100);
+		res.setCgiPid(pid);
+		res.setCgiFdIn(pipe_in[1]);
+		res.setCgiFdOut(pipe_out[0]);
+		
+		return res;
+	}
 }
