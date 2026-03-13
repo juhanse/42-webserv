@@ -84,12 +84,10 @@ bool	Client::isCompleted() {
 
 	switch (method) {
 		case GET:
-			std::cout << "GET detected" << std::endl;
 			return (true);
 		case DELETE:
 			return (true);
 		case POST:
-			std::cout << "POST detected" << std::endl;
 			headers = _recvBuff.substr(0, endTag);
 			if (!findContentLength(headers))
 				return (_response->setStatusCode(400), true); //Length missing 400 vs 411?
@@ -117,6 +115,8 @@ void	Client::handleRequest() {
 }
 
 void	Client::processRequest() {
+	std::cout << "Processing request" << std::endl;
+	
 	int	code = _response->getStatusCode();
 
 	if (code >= 400)
@@ -148,8 +148,7 @@ void	Client::readRequest() {
 
 		if (isCompleted()) {
 			_status = PROCESSING;
-			std::cout 	<< "RECEIVED REQUEST:\n"
-						<<_recvBuff << std::endl;
+			std::cout 	<< "Request received" << std::endl;
 		}
 	}
 	else {
