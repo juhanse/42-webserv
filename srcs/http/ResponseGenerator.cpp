@@ -373,62 +373,19 @@ HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const Locatio
 		_exit(1);
 	}
 	else {
-        close(pipe_in[0]);
-        close(pipe_out[1]);
+		close(pipe_in[0]);
+		close(pipe_out[1]);
 
-        if (req.getMethod() == "POST") {
-            write(pipe_in[1], req.getBody().c_str(), req.getBody().length());
-        }
-        close(pipe_in[1]); 
+		fcntl(pipe_in[1], F_SETFL, O_NONBLOCK);
+		fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
 
-        char buffer[4096];
-        std::string cgiOutput;
-        int bytesRead;
-        
-        while ((bytesRead = read(pipe_out[0], buffer, 4096)) > 0) {
-            cgiOutput.append(buffer, bytesRead);
-        }
-        close(pipe_out[0]);
+		_freeEnv(envp);
 
-        int status;
-        waitpid(pid, &status, 0);
-
-        _freeEnv(envp);
-
-        size_t headerEnd = cgiOutput.find("\r\n\r\n");
-        if (headerEnd != std::string::npos) {
-            std::string cgiHeaders = cgiOutput.substr(0, headerEnd);
-            std::string cgiBody = cgiOutput.substr(headerEnd + 4);
-            
-            size_t ctPos = cgiHeaders.find("Content-Type: ");
-            if (ctPos != std::string::npos) {
-                size_t ctEnd = cgiHeaders.find("\r\n", ctPos);
-                if (ctEnd == std::string::npos) ctEnd = cgiHeaders.length();
-                std::string ct = cgiHeaders.substr(ctPos + 14, ctEnd - (ctPos + 14));
-                res.setHeader("Content-Type", ct);
-            }
-            res.setBody(cgiBody);
-        } else {
-            res.setBody(cgiOutput);
-        }
-
-        res.setStatusCode(200);
-        return res;
-    }
-	// else {
-	// 	close(pipe_in[0]);
-	// 	close(pipe_out[1]);
-
-	// 	fcntl(pipe_in[1], F_SETFL, O_NONBLOCK);
-	// 	fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
-
-	// 	_freeEnv(envp);
-
-	// 	res.setStatusCode(100);
-	// 	res.setCgiPid(pid);
-	// 	res.setCgiFdIn(pipe_in[1]);
-	// 	res.setCgiFdOut(pipe_out[0]);
+		res.setStatusCode(100);
+		res.setCgiPid(pid);
+		res.setCgiFdIn(pipe_in[1]);
+		res.setCgiFdOut(pipe_out[0]);
 		
-	// 	return res;
-	// }
+		return res;
+	}
 }
