@@ -1,8 +1,9 @@
 #pragma once
 
-#include <string>
 #include <map>
+#include <string>
 #include <sstream>
+#include <iostream>
 
 class HttpRequest {
 	private:
@@ -13,8 +14,6 @@ class HttpRequest {
 		std::string							_protocol;
 		std::string							_body;
 		std::map<std::string, std::string>	_headers;
-
-		int									_error;
 	
 	public:
 		HttpRequest();
@@ -29,7 +28,7 @@ class HttpRequest {
 		const std::string&	getProtocol() const { return _protocol; };
 		const std::string&	getBody() const { return _body; };
 		std::string			getCookie(const std::string& key) const;
-		int					getError() const { return _error; };
+		//int					getError() const { return _error; };
 
 		void				setMethod(std::string token);
 		void				setContentLength(std::string token);

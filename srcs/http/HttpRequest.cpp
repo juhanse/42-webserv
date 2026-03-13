@@ -6,8 +6,7 @@ HttpRequest::HttpRequest(): _contentLength(0),
 							_query(""),
 							_protocol(""),
 							_body(""),
-							_headers(),
-							_error(0) {}
+							_headers() {}
 
 HttpRequest::~HttpRequest() {}
 
@@ -52,8 +51,9 @@ bool	HttpRequest::parse(const std::string& rawRequest) {
 		if (_method.empty() || _uri.empty() || _protocol.empty())
 			return (false);
 
-		// if (!lineStream.eof())
-		// 	return (false);
+		std::string	leftover;
+		if (lineStream >> leftover)
+			return (false);
 
 		if (_uri.find("..") != std::string::npos)
 			return (false);

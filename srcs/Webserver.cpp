@@ -4,7 +4,7 @@ Webserver::Webserver(std::vector<ServerConfig*> configs): _configs(configs) {}
 
 Webserver::~Webserver() {
 	for (std::map<int, Client*>::iterator it = _clients.begin(); 
-			it != _clients.end(); ++it) //check post or pre inc
+			it != _clients.end(); ++it)
 				delete it->second;
 			_clients.clear();
 	

@@ -92,10 +92,10 @@ bool	Client::isCompleted() {
 			std::cout << "POST detected" << std::endl;
 			headers = _recvBuff.substr(0, endTag);
 			if (!findContentLength(headers))
-				return (_response->setStatusCode(411), true); //Length missing 400 vs 411?
+				return (_response->setStatusCode(400), true); //Length missing 400 vs 411?
 
 			if (_request->getContentLength() > _config->getClientMaxBodysize())
-				return (_response->setStatusCode(400), true); //400 vs 413 Payload too large?
+				return (_response->setStatusCode(413), true); //400 vs 413 Payload too large?
 
 			if (bodyIsFull(endTag + 4, _request->getContentLength()))
 				return (true);
@@ -105,7 +105,7 @@ bool	Client::isCompleted() {
 		default:
 			//more precise detection? 405 vs 501
 			std::cout << "Unknown request type" << std::endl;
-			return(_response->setStatusCode(501), true);
+			return(_response->setStatusCode(405), true);
 	}
 }
 
@@ -126,7 +126,7 @@ void	Client::processRequest() {
 		if (_request->parse(_recvBuff))
 			handleRequest();
 		else {
-			_response->setStatusCode(_request->getError());
+			_response->setStatusCode(400);
 			_response->generateErrorPage(_response->getStatusCode(), *_config);
 		}
 	}
