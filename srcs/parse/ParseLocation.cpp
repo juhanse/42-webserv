@@ -60,6 +60,7 @@ void	parseUpload(std::vector<std::string>& tokens, size_t& i, LocationConfig& lo
 	i++;
 	if (i >= tokens.size() || tokens[i] != ";")
 		throw (std::runtime_error("Missing ; after upload directive path."));
+	upload_set = true;
 	i++;
 }
 
