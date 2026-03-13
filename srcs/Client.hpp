@@ -54,4 +54,9 @@ class	Client {
 		void		readRequest();
 		void		processRequest();
 		void		writeResponse();
+
+		void			parseCgiOutput(const std::string& output, int code);
+
+    	int           	getFd() const { return _fd; }
+		HttpResponse*	getResponse() const { return _response; }
 };

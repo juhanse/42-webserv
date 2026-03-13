@@ -184,3 +184,31 @@ void	Client::writeResponse() {
 		_status = DONE;
 	}
 }
+
+void	Client::parseCgiOutput(const std::string& output, int code) {
+	if (code != 200) {
+		_response->generateErrorPage(code, *_config);
+		_status = WRITING;
+		return;
+	}
+
+	size_t headerEnd = output.find("\r\n\r\n");
+	if (headerEnd != std::string::npos) {
+		std::string headers = output.substr(0, headerEnd);
+		std::string body = output.substr(headerEnd + 4);
+		
+		size_t ctPos = headers.find("Content-Type: ");
+		if (ctPos != std::string::npos) {
+			size_t ctEnd = headers.find("\r\n", ctPos);
+			if (ctEnd == std::string::npos) ctEnd = headers.length();
+			std::string ct = headers.substr(ctPos + 14, ctEnd - (ctPos + 14));
+			_response->setHeader("Content-Type", ct);
+		}
+		_response->setBody(body);
+	} else {
+		_response->setBody(output);
+	}
+
+	_response->setStatusCode(200);
+	_status = WRITING;
+}

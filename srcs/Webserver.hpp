@@ -5,6 +5,7 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <iostream>
+#include <signal.h>
 #include <unistd.h>
 #include "Client.hpp"
 #include <sys/socket.h>
@@ -13,6 +14,14 @@
 
 class	Webserver {
 	private:
+		struct CgiData {
+			Client* client;
+			pid_t pid;
+			time_t startTime;
+			std::string output;
+		};
+	
+		std::map<int, CgiData> _cgiMap;
 		std::vector<pollfd>				_pollWatch;		//array of fds under poll's watch
 		std::vector<ServerConfig*>		_configs;		//array of server configs
 		
@@ -29,6 +38,12 @@ class	Webserver {
 		void	sendToWatchList(int fd);
 		int		setNonBlock(int fd);
 		void	switchToPollout(int fd);
+
+		void	registerCgi(Client* client, int pipeFd, pid_t pid);
+		void	readCgi(int fd);
+		void	handleCgiEnd(int fd);
+		void	checkCgiTimeouts();
+		void	removeFromPollWatch(int fd);
 
 	public:
 		Webserver(std::vector<ServerConfig*>);
