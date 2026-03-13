@@ -10,27 +10,23 @@ Key features:
 - Multi-server support on different ports  
 - Multiple locations per server  
 - Client body size limits  
-- Automatic error pages (404, 500)  
-- CGI support for `.py` and `.sh` scripts  
+- Automatic error pages
+- CGI support for all scripts
 - Robust configuration parsing with error detection
 
 # Instructions
-Run the server by specifying a configuration file:
-	
-./webserv srcs/config.conf
-
-## Compilation
-The project uses a Makefile. The makefile contains the following flags, Werror Wextra Wall -std=c++98.
 Compile with:
 
-make
+`make`
 
-# References
-- https://nginx.org/en/docs/
+Run the server by specifying a configuration file:
+	
+`./webserv srcs/config.conf`
 
 ## AI was used to:
-	Suggest improvements to the parser and tokenizer
-	Generate edge-case configurations for testing
+- Suggest improvements to the parser and tokenizer
+- Generate edge-case configurations for testing
+- Explainations for dynamic CGI working
 
 ## Project structure
 	webserv_git/
@@ -66,3 +62,7 @@ make
 	├── objs/  (compiled objects)
 	├── Makefile
 	└── README.md
+
+
+# References
+- https://nginx.org/en/docs/
