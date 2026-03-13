@@ -2,3 +2,5 @@ objs
 webserv
 a.out
 draft.cpp
+cgi_tester
+tester
