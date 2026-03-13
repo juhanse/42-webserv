@@ -1,9 +1,12 @@
-#include "config/ServerConfig.hpp"
+#include "WebserverSignals.cpp"
 #include "Webserver.hpp"
-#include "http/ResponseGenerator.hpp"
 #include "parse/ConfigParser.hpp"
+#include "config/ServerConfig.hpp"
+#include "http/ResponseGenerator.hpp"
 
-int main(int ac, char **av) {
+volatile sig_atomic_t g_shutdown = 0;
+
+int	main(int ac, char **av) {
 	if (ac != 2) {
 		std::cerr << "Usage: ./webserv [configuration file]" << std::endl;
 		return (1);
@@ -36,14 +39,11 @@ int main(int ac, char **av) {
 	for (size_t i = 0; i < configurations.size(); i++) {
 		if (webserv.newServ(configurations[i]) == -1) {
 			std::cerr << "Servers couldn't init" << std::endl;
-			//clean and free? in webserv destructor?
 			return (1);
 		}
 	}
-	
+
 	webserv.runServ();
-
-	//clean and free? in webserv destructor?
-
+	
 	return (0);
 }

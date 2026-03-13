@@ -21,13 +21,14 @@ class	Webserver {
 			std::string output;
 		};
 	
-		std::map<int, CgiData> _cgiMap;
 		std::vector<pollfd>				_pollWatch;		//array of fds under poll's watch
 		std::vector<ServerConfig*>		_configs;		//array of server configs
-		
 		std::map<int, Client*>			_clients;		//key: Client connect fd ; value: associated Client
 		std::map<int, ServerConfig*>	_listenFds;		//key: Server listen fd ; value: associated config
-
+		
+		std::map<int, CgiData> 			_cgiMap;
+		
+		void	cleanup();
 		void	closeClient(int fd);
 		void	closeTimedOut();
 		bool	isListenSock(int fd);
@@ -51,5 +52,7 @@ class	Webserver {
 
 		int		newServ(ServerConfig* config);
 		void	runServ();
-
+		void	setUpSignals() const;
 };
+
+extern volatile sig_atomic_t g_shutdown;

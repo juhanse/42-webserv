@@ -3,13 +3,7 @@
 Webserver::Webserver(std::vector<ServerConfig*> configs): _configs(configs) {}
 
 Webserver::~Webserver() {
-	for (std::map<int, Client*>::iterator it = _clients.begin(); 
-			it != _clients.end(); ++it)
-				delete it->second;
-			_clients.clear();
-	
-	for (size_t i = 0; i < _pollWatch.size(); i++)
-		close(_pollWatch[i].fd);
+	cleanup();
 }
 
 int	Webserver::newListenSock(int port) {
@@ -58,8 +52,16 @@ void	Webserver::closeClient(int fd) {
 void	Webserver::newClient(int listFd) {
 	struct sockaddr_in	client_addr;
 	socklen_t sockLen = sizeof(client_addr);
-	int	client_fd = accept(listFd, reinterpret_cast<sockaddr *>(&client_addr), &sockLen); //protect it?
-	setNonBlock(client_fd); //define what to do in case of failure?
+	int	client_fd = accept(listFd, reinterpret_cast<sockaddr *>(&client_addr), &sockLen);
+	if (client_fd == -1) {
+		perror("accept()");
+		return ;
+	}
+
+	if (setNonBlock(client_fd) == -1) {
+		close(client_fd);
+		return ;
+	}
 
 	Client*	client = new Client(client_fd, _listenFds[listFd]);
 	_clients[client_fd] = client;
@@ -72,7 +74,7 @@ int Webserver::newServ(ServerConfig* config) {
 	int	listen_fd = newListenSock(config->getPort());
 	if (listen_fd == -1) {
 		std::cerr	<< "Listen socket creation failed on port "
-					<< config->getPort() << std::endl;
+					<< config->getPort() << " ..." << std::endl;
 		return (-1);	
 	}
 	sendToWatchList(listen_fd);
@@ -119,99 +121,20 @@ void	Webserver::receiveRequest(int fd) {
 		switchToPollout(fd);
 }
 
-void Webserver::removeFromPollWatch(int fd) {
-    for (std::vector<pollfd>::iterator it = _pollWatch.begin(); it != _pollWatch.end(); ++it) {
-        if (it->fd == fd) {
-            _pollWatch.erase(it);
-            break;
-        }
-    }
-}
-
-void Webserver::registerCgi(Client* client, int pipeFd, pid_t pid) {
-    CgiData data;
-    data.client = client;
-    data.pid = pid;
-    data.startTime = time(NULL);
-    data.output = "";
-    
-    _cgiMap[pipeFd] = data;
-
-    struct pollfd pfd;
-    pfd.fd = pipeFd;
-    pfd.events = POLLIN;
-    pfd.revents = 0;
-    _pollWatch.push_back(pfd);
-}
-
-void Webserver::readCgi(int fd) {
-    char buffer[4096];
-    int bytesRead = read(fd, buffer, sizeof(buffer));
-
-    if (bytesRead > 0) {
-        _cgiMap[fd].output.append(buffer, bytesRead);
-    } else if (bytesRead == 0) {
-        handleCgiEnd(fd);
-    }
-}
-
-void Webserver::handleCgiEnd(int fd) {
-    CgiData data = _cgiMap[fd];
-    int status;
-    
-    waitpid(data.pid, &status, WNOHANG);
-
-    int code = 200;
-    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
-        code = 502;
-    }
-
-    data.client->parseCgiOutput(data.output, code);
-    switchToPollout(data.client->getFd());
-    
-    removeFromPollWatch(fd);
-    close(fd);
-    _cgiMap.erase(fd);
-}
-
-void Webserver::checkCgiTimeouts() {
-    time_t now = time(NULL);
-    std::map<int, CgiData>::iterator it = _cgiMap.begin();
-
-    while (it != _cgiMap.end()) {
-        if (now - it->second.startTime > 5) {
-            int fd = it->first;
-            CgiData data = it->second;
-
-            kill(data.pid, SIGKILL);
-            waitpid(data.pid, NULL, WNOHANG);
-
-            data.client->parseCgiOutput("", 504);
-            switchToPollout(data.client->getFd());
-
-            removeFromPollWatch(fd);
-            close(fd);
-            
-            std::map<int, CgiData>::iterator toErase = it;
-            ++it;
-            _cgiMap.erase(toErase);
-        } else {
-            ++it;
-        }
-    }
-}
-
 void	Webserver::runServ() {
-	while (true) {
+
+	setUpSignals();
+
+	while (g_shutdown == 0) {
 		int isReady = poll(_pollWatch.data(), _pollWatch.size(), 3000);
 
 		if (isReady == -1) {
-			if (errno == EINTR) //Signal or CGI disturbed poll -> relaunch loop
-				continue ;
-			perror("poll()"); //something else bad happened
+			if (g_shutdown == 1)
+				break ;
+			perror("poll()");
 			break ;
 		}
-
+	
 		checkCgiTimeouts();
 
 		if (isReady == 0) {
@@ -221,6 +144,9 @@ void	Webserver::runServ() {
 
 		else {
 			for (size_t i = 0; i < _pollWatch.size(); i++) {
+				if (g_shutdown == 1)
+					break ;
+
 				int		fd = _pollWatch[i].fd;
 				short	revents = _pollWatch[i].revents;
 				bool	isListen = isListenSock(fd);

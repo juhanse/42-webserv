@@ -10,16 +10,17 @@ COLOUR_END=\033[0m
 PATH_SRCS = srcs/
 PATH_OBJS = objs/
 
-SRC =	Client.cpp				\
-		http/HttpRequest.cpp			\
+SRC =	Client.cpp					\
+		http/HttpRequest.cpp		\
 		http/HttpResponse.cpp		\
-		main.cpp				\
+		main.cpp					\
 		http/ResponseGenerator.cpp	\
-		Webserver_utils.cpp	\
-		Webserver.cpp			\
-		parse/ConfigParser.cpp parse/ParseListen.cpp parse/ParseServerName.cpp \
-		parse/ParseRoot.cpp parse/ParseIndex.cpp parse/ParseMaxSize.cpp parse/ParseErrorPage.cpp \
-		parse/ParseLocation.cpp config/ServerConfig.cpp config/LocationConfig.cpp utils/utils.cpp utils/debugPrint.cpp \
+		Webserver.cpp				\
+		WebserverCGI.cpp			\
+		WebserverUtils.cpp			\
+		parse/ConfigParser.cpp parse/ParseListen.cpp parse/ParseServerName.cpp 											\
+		parse/ParseRoot.cpp parse/ParseIndex.cpp parse/ParseMaxSize.cpp parse/ParseErrorPage.cpp 						\
+		parse/ParseLocation.cpp config/ServerConfig.cpp config/LocationConfig.cpp utils/utils.cpp utils/debugPrint.cpp	\
 		session/SessionManager.cpp
 
 SRCS = $(addprefix $(PATH_SRCS), $(SRC))
