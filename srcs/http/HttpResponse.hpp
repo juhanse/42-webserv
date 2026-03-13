@@ -37,9 +37,9 @@ class HttpResponse {
 
 		std::string getRawResponse() const; 
 
-		const pid_t getCgiPid() const { return _cgiPid; };
-		const int   getCgiFdIn() const { return _cgiFdIn; };
-		const int   getCgiFdOut() const { return _cgiFdOut; };
+		pid_t getCgiPid() const { return _cgiPid; };
+		int   getCgiFdIn() const { return _cgiFdIn; };
+		int   getCgiFdOut() const { return _cgiFdOut; };
 
 		void  setCgiPid(pid_t pid);
 		void  setCgiFdIn(int fd);
