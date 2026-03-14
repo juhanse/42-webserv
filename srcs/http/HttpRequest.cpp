@@ -19,23 +19,25 @@ void	HttpRequest::setContentLength(std::string token) {
 	ss >> _contentLength;
 }
 
-std::string	HttpRequest::getCookie(const std::string& key) const {
-    std::map<std::string, std::string>::const_iterator it = _headers.find("Cookie");
-    if (it != _headers.end()) {
-        std::string cookies = it->second;
-        size_t pos = cookies.find(key + "=");
+std::string HttpRequest::getCookie(const std::string& key) const {
+	std::string cookieHeader = getHeader("Cookie");
+	if (cookieHeader.empty()) {
+		return "";
+	}
 
-        if (pos != std::string::npos) {
-            size_t start = pos + key.length() + 1;
-            size_t end = cookies.find(";", start);
-	
-            if (end == std::string::npos) {
-                end = cookies.length();
-            }
-            return cookies.substr(start, end - start);
-        }
-    }
-    return "";
+	std::string search = key + "=";
+	size_t pos = cookieHeader.find(search);
+	if (pos == std::string::npos) {
+		return "";
+	}
+
+	pos += search.length();
+	size_t end = cookieHeader.find(";", pos);
+	if (end == std::string::npos) {
+		end = cookieHeader.length();
+	}
+
+	return cookieHeader.substr(pos, end - pos);
 }
 
 bool	HttpRequest::parse(const std::string& rawRequest) {
