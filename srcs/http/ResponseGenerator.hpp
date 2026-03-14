@@ -19,7 +19,7 @@ class ResponseGenerator {
 		const LocationConfig* 	_matchLocation(const std::string& requestPath, const ServerConfig& config);
 		std::string				_readFile(const std::string& path);
 		std::string 			_getScriptDirectory(const std::string& scriptPath);
-		char**					_createCGIEnv(const HttpRequest& req, const LocationConfig& loc, const std::string& scriptPath);
+		char**					_createCGIEnv(const HttpRequest& req, const std::string& scriptPath);
         void					_freeEnv(char** envp);
 
 		HttpResponse _handleGET(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);

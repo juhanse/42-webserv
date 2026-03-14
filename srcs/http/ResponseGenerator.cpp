@@ -51,8 +51,7 @@ std::string ResponseGenerator::_getScriptDirectory(const std::string& scriptPath
     return ".";
 }
 
-char** ResponseGenerator::_createCGIEnv(const HttpRequest& req, const LocationConfig& loc, const std::string& scriptPath) {
-	(void)loc;
+char** ResponseGenerator::_createCGIEnv(const HttpRequest& req, const std::string& scriptPath) {
 	std::map<std::string, std::string> envMap;
 
 	envMap["REQUEST_METHOD"] = req.getMethod();
@@ -323,7 +322,7 @@ HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const Locatio
 		return res;
 	}
 
-	char** envp = _createCGIEnv(req, loc, scriptPath);
+	char** envp = _createCGIEnv(req, scriptPath);
 
 	int pipe_in[2];
 	int pipe_out[2];
