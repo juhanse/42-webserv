@@ -67,7 +67,7 @@ bool	HttpRequest::parse(const std::string& rawRequest) {
 		}
 
 		if (_protocol != "HTTP/1.0" && _protocol != "HTTP/1.1")
-			return (false); //error 505 ?
+			return (false);
 	}
 	else
 		return (false);

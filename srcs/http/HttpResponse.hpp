@@ -19,29 +19,29 @@ class HttpResponse {
         int                                 _cgiFdIn;
         int                                 _cgiFdOut;
 
-		std::string _getStatusMessage(int code) const;
+		std::string							_getStatusMessage(int code) const;
 
 	public:
 		HttpResponse();
 		~HttpResponse();
 
-		int getStatusCode() const;
+		int 		getStatusCode() const;
 
-		void setStatusCode(int code);
-		void setHeader(const std::string& key, const std::string& value);
-		void setBody(const std::string& content);
+		void 		setStatusCode(int code);
+		void 		setHeader(const std::string& key, const std::string& value);
+		void 		setBody(const std::string& content);
 
-		void setCookie(const std::string& key, const std::string& value, int max_age);
-		void setContentType(const std::string& path);
-		void generateErrorPage(int code, const ServerConfig& config);
+		void 		setCookie(const std::string& key, const std::string& value, int max_age);
+		void 		setContentType(const std::string& path);
+		void 		generateErrorPage(int code, const ServerConfig& config);
 
-		std::string getRawResponse() const; 
+		std::string	getRawResponse() const; 
 
-		pid_t getCgiPid() const { return _cgiPid; };
-		int   getCgiFdIn() const { return _cgiFdIn; };
-		int   getCgiFdOut() const { return _cgiFdOut; };
+		pid_t		getCgiPid() const { return _cgiPid; };
+		int			getCgiFdIn() const { return _cgiFdIn; };
+		int			getCgiFdOut() const { return _cgiFdOut; };
 
-		void  setCgiPid(pid_t pid);
-		void  setCgiFdIn(int fd);
-		void  setCgiFdOut(int fd);
+		void		setCgiPid(pid_t pid);
+		void		setCgiFdIn(int fd);
+		void	  	setCgiFdOut(int fd);
 };

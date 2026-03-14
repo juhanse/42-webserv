@@ -6,8 +6,8 @@
 #include <sstream>
 
 struct SessionData {
-	std::string username;
-	time_t expires_at;
+	std::string	username;
+	time_t		expires_at;
 };
 
 class SessionManager {
