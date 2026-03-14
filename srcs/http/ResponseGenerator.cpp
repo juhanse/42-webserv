@@ -193,15 +193,40 @@ HttpResponse ResponseGenerator::_handlePOST(const HttpRequest& req, const Locati
 		}
 	}
 
+	std::string body = req.getBody();
+	std::string username = "inconnu";
+	size_t userPos = body.find("utilisateur=");
+	
+	if (userPos != std::string::npos) {
+		userPos += 12;
+		size_t endPos = body.find("&", userPos);
+		if (endPos == std::string::npos) {
+			username = body.substr(userPos);
+		} else {
+			username = body.substr(userPos, endPos - userPos);
+		}
+	}
+
+	std::string sessionId = SessionManager::getInstance().createSession(username, 3600);
+
 	HttpResponse res;
 	res.setStatusCode(200);
-	res.setBody("<html><body><h1>200 OK</h1><p>Formulaire classique recu avec succes.</p></body></html>");
+	res.setBody("<html><body><h1>200 OK</h1><p>Bienvenue " + username + " ! Session creee.</p></body></html>");
 	res.setHeader("Content-Type", "text/html");
+	res.setCookie("session_id", sessionId, 3600);
+	
 	return res;
 }
 
 HttpResponse ResponseGenerator::_handleUpload(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config, const std::string& boundary) {
 	HttpResponse res;
+	std::string sessionId = req.getCookie("session_id");
+	
+	if (sessionId.empty() || !SessionManager::getInstance().isValidSession(sessionId)) {
+		res.generateErrorPage(403, config); 
+		return res;
+	}
+
     std::string body = req.getBody();
     std::string searchBoundary = "--" + boundary;
 

@@ -4,6 +4,7 @@
 #include "HttpResponse.hpp"
 #include "../config/ServerConfig.hpp"
 #include "../config/LocationConfig.hpp"
+#include "../session/SessionManager.hpp"
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
