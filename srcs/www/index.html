@@ -16,7 +16,7 @@
 
 	<body>
 		<div class="container">
-			<h2>Formulaire</h2>
+			<h2>1. Connexion</h2>
 			<form action="/traitement" method="POST">
 				<label for="nom">Ton Nom :</label>
 				<input type="text" id="nom" name="utilisateur" required>
@@ -24,14 +24,14 @@
 				<label for="msg">Ton Message :</label>
 				<textarea id="msg" name="message" rows="4" required></textarea>
 
-				<button type="submit">Envoyer le texte</button>
+				<button type="submit">Se connecter</button>
 			</form>
 		</div>
 
 		<div class="container">
-			<h2>Upload fichier</h2>
+			<h2>2. Upload fichier (Securise)</h2>
 			<form action="/uploads/" method="POST" enctype="multipart/form-data">
-				<label for="fichier">Choisis un fichier (ex: image ou txt) :</label>
+				<label for="fichier">Choisis un fichier :</label>
 				<input type="file" id="fichier" name="monFichier" required>
 
 				<button type="submit" class="upload-btn">Uploader le fichier</button>

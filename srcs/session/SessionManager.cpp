@@ -3,6 +3,11 @@
 SessionManager::SessionManager() {}
 SessionManager::~SessionManager() {}
 
+SessionManager& SessionManager::getInstance() {
+	static SessionManager instance;
+	return instance;
+}
+
 std::string SessionManager::_generateSessionID() {
 	std::stringstream ss;
 	srand(time(NULL));

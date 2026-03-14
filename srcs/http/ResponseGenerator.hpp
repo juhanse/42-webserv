@@ -4,6 +4,7 @@
 #include "HttpResponse.hpp"
 #include "../config/ServerConfig.hpp"
 #include "../config/LocationConfig.hpp"
+#include "../session/SessionManager.hpp"
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -22,11 +23,11 @@ class ResponseGenerator {
 		char**					_createCGIEnv(const HttpRequest& req, const std::string& scriptPath);
         void					_freeEnv(char** envp);
 
-		HttpResponse _handleGET(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
-		HttpResponse _handlePOST(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
-		HttpResponse _handleDELETE(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
-		HttpResponse _handleCGI(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
-		HttpResponse _handleUpload(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config, const std::string& boundary);
+		HttpResponse			_handleGET(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
+		HttpResponse			_handlePOST(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
+		HttpResponse			_handleDELETE(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
+		HttpResponse			_handleCGI(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config);
+		HttpResponse			_handleUpload(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config, const std::string& boundary);
 
 	public:
 		ResponseGenerator();

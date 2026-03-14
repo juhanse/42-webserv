@@ -10,10 +10,8 @@ const LocationConfig* ResponseGenerator::_matchLocation(const std::string& reque
 	const std::vector<LocationConfig>& locations = config.getLocations();
 	for (size_t i = 0; i < locations.size(); ++i) {
 		const std::string& locPath = locations[i].getPath();
-		
-		// Si le path de la requête commence par le path de la location
+
 		if (requestPath.find(locPath) == 0) {
-			// On garde celle qui a le préfixe le plus long (la plus précise)
 			if (locPath.length() > longestPrefix) {
 				longestPrefix = locPath.length();
 				bestMatchIdx = i;
@@ -25,18 +23,16 @@ const LocationConfig* ResponseGenerator::_matchLocation(const std::string& reque
 		return NULL; 
 	}
 
-	// return de l'adresse de la location trouvée
 	return &locations[bestMatchIdx];
 }
 
 std::string ResponseGenerator::_readFile(const std::string& path) {
-	// Ouverture en mode binaire (pour images/fichiers compilés)
+	// Optimized binary mode opening for compiled files and block reading
 	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
 	if (!file) {
 		return "";
 	}
 
-	// Lecture en bloc optimisée
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 
@@ -95,7 +91,6 @@ void ResponseGenerator::_freeEnv(char** envp) {
 HttpResponse ResponseGenerator::generate(const HttpRequest& req, const ServerConfig& config) {
     HttpResponse res;
 
-    // 1. Trouver la Location
     const LocationConfig* locPtr = _matchLocation(req.getPath(), config);
     if (locPtr == NULL) {
         res.generateErrorPage(404, config);
@@ -103,7 +98,6 @@ HttpResponse ResponseGenerator::generate(const HttpRequest& req, const ServerCon
     }
     const LocationConfig& loc = *locPtr;
 
-    // 2. Check autorisations
     bool allowed = false;
     const std::set<std::string>& methods = loc.getMethods();
 	if (methods.find(req.getMethod()) != methods.end()) {
@@ -114,7 +108,6 @@ HttpResponse ResponseGenerator::generate(const HttpRequest& req, const ServerCon
         return res;
     }
 
-    // 3. L'aiguillage
 	const std::map<std::string, std::string>& cgi = loc.getCgiExtensions();
 
 	size_t dot = req.getPath().rfind('.');
@@ -193,24 +186,47 @@ HttpResponse ResponseGenerator::_handlePOST(const HttpRequest& req, const Locati
 		}
 	}
 
+	std::string body = req.getBody();
+	std::string username = "inconnu";
+	size_t userPos = body.find("utilisateur=");
+	
+	if (userPos != std::string::npos) {
+		userPos += 12;
+		size_t endPos = body.find("&", userPos);
+		if (endPos == std::string::npos) {
+			username = body.substr(userPos);
+		} else {
+			username = body.substr(userPos, endPos - userPos);
+		}
+	}
+
+	std::string sessionId = SessionManager::getInstance().createSession(username, 3600);
+
 	HttpResponse res;
 	res.setStatusCode(200);
-	res.setBody("<html><body><h1>200 OK</h1><p>Formulaire classique recu avec succes.</p></body></html>");
+	res.setBody("<html><body><h1>200 OK</h1><p>Bienvenue " + username + " ! Session creee.</p></body></html>");
 	res.setHeader("Content-Type", "text/html");
+	res.setCookie("session_id", sessionId, 3600);
+	
 	return res;
 }
 
 HttpResponse ResponseGenerator::_handleUpload(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config, const std::string& boundary) {
 	HttpResponse res;
+
+	std::string sessionId = req.getCookie("session_id");
+	if (sessionId.empty() || !SessionManager::getInstance().isValidSession(sessionId)) {
+		res.generateErrorPage(403, config); 
+		return res;
+	}
+
     std::string body = req.getBody();
     std::string searchBoundary = "--" + boundary;
 
-    std::cout << "--- DEBUG UPLOAD ---" << std::endl;
-    std::cout << "Boundary recu : [" << searchBoundary << "]" << std::endl;
+    std::cout << "Boundary receive : [" << searchBoundary << "]" << std::endl;
 
     size_t fnPos = body.find("filename=\"");
     if (fnPos == std::string::npos) {
-        std::cout << "ECHEC 1 : filename= non trouve dans le body." << std::endl;
         res.generateErrorPage(400, config);
         return res;
     }
@@ -218,17 +234,15 @@ HttpResponse ResponseGenerator::_handleUpload(const HttpRequest& req, const Loca
     size_t fnStart = fnPos + 10;
     size_t fnEnd = body.find("\"", fnStart);
     if (fnEnd == std::string::npos) {
-        std::cout << "ECHEC 2 : fin du nom de fichier non trouvee." << std::endl;
         res.generateErrorPage(400, config);
         return res;
     }
 
     std::string filename = body.substr(fnStart, fnEnd - fnStart);
-    std::cout << "Fichier detecte : " << filename << std::endl;
+    std::cout << "File detected : " << filename << std::endl;
 
     size_t dataStart = body.find("\r\n\r\n", fnEnd);
     if (dataStart == std::string::npos) {
-        std::cout << "ECHEC 3 : separateur headers/body (\\r\\n\\r\\n) non trouve." << std::endl;
         res.generateErrorPage(400, config);
         return res;
     }
@@ -236,12 +250,11 @@ HttpResponse ResponseGenerator::_handleUpload(const HttpRequest& req, const Loca
 
     size_t dataEnd = body.find("\r\n" + searchBoundary, dataStart);
     if (dataEnd == std::string::npos) {
-        std::cout << "ECHEC 4 : fin du fichier / boundary de fin non trouve." << std::endl;
         res.generateErrorPage(400, config);
         return res;
     }
 
-    std::cout << "Taille du fichier a ecrire : " << (dataEnd - dataStart) << " octets." << std::endl;
+    std::cout << "File size to be written : " << (dataEnd - dataStart) << " octets." << std::endl;
 
 	std::string basePath = loc.getRoot() + req.getPath();
     if (!basePath.empty() && basePath[basePath.length() - 1] != '/') {
