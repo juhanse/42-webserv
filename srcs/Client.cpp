@@ -49,10 +49,8 @@ bool	Client::findContentLength(std::string headers) {
 		lowerCase[i] = std::tolower(lowerCase[i]);
 
 	size_t	clTag = lowerCase.find("content-length:");
-	if (clTag == std::string::npos) {
-		std::cout << "Content-Length header is missing" << std::endl;
+	if (clTag == std::string::npos)
 		return (false);
-	}
 	else {
 		std::string			value;
 		std::string			postCl = lowerCase.substr(clTag + 15);
@@ -61,13 +59,10 @@ bool	Client::findContentLength(std::string headers) {
 
 		if (!value.empty()) {
 			for (size_t i = 0; i < value.size(); i++) {
-				if (!std::isdigit(value[i])) {
-					std::cout << "Wrong value in content length" << std::endl;
+				if (!std::isdigit(value[i]))
 					return (false);
-				}
 			}
 			_request->setContentLength(value);
-			std::cout << "Content Length is: " << _request->getContentLength() << std::endl;
 			return (true);
 		}
 		return (false);
@@ -90,10 +85,10 @@ bool	Client::isCompleted() {
 		case POST:
 			headers = _recvBuff.substr(0, endTag);
 			if (!findContentLength(headers))
-				return (_response->setStatusCode(400), true); //Length missing 400 vs 411?
+				return (_response->setStatusCode(400), true);
 
 			if (_request->getContentLength() > _config->getClientMaxBodysize())
-				return (_response->setStatusCode(413), true); //400 vs 413 Payload too large?
+				return (_response->setStatusCode(413), true);
 
 			if (bodyIsFull(endTag + 4, _request->getContentLength()))
 				return (true);
@@ -101,8 +96,6 @@ bool	Client::isCompleted() {
 			return (false);	
 		case UNKNOWN:
 		default:
-			//more precise detection? 405 vs 501
-			std::cout << "Unknown request type" << std::endl;
 			return(_response->setStatusCode(405), true);
 	}
 }

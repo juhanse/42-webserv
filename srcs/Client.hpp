@@ -38,22 +38,22 @@ class	Client {
 
 		ServerConfig*	_config;
 
-		bool		bodyIsFull(size_t bodyStart, size_t expectedBody) const;
- 		int			findMethod() const;
-		bool		findContentLength(std::string headers);
-		void		handleRequest();
-		bool		isCompleted();
-		void		resetActivity();
+		bool			bodyIsFull(size_t bodyStart, size_t expectedBody) const;
+ 		int				findMethod() const;
+		bool			findContentLength(std::string headers);
+		void			handleRequest();
+		bool			isCompleted();
+		void			resetActivity();
 
 	public:
 		Client(int fd, ServerConfig* config);
 		~Client();
 
-		int			getStatus() const {return _status; };
-		bool		hasTimedOut() const;
-		void		readRequest();
-		void		processRequest();
-		void		writeResponse();
+		int				getStatus() const {return _status; };
+		bool			hasTimedOut() const;
+		void			readRequest();
+		void			processRequest();
+		void			writeResponse();
 
 		void			parseCgiOutput(const std::string& output, int code);
 

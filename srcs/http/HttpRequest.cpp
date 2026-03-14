@@ -75,6 +75,9 @@ bool	HttpRequest::parse(const std::string& rawRequest) {
 		if (tag != std::string::npos) {
 			std::string key = line.substr(0, tag);
 			std::string value = line.substr(tag + 2);
+			
+			if (key.find(" ") != std::string::npos || key.empty())
+				return (false);
 
 			if (!value.empty() && value[value.size() - 1] == '\r') {
 				value.erase(value.size() - 1);
