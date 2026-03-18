@@ -394,14 +394,19 @@ HttpResponse ResponseGenerator::_handleCGI(const HttpRequest& req, const Locatio
 		close(pipe_in[0]);
 		close(pipe_out[1]);
 
-		fcntl(pipe_in[1], F_SETFL, O_NONBLOCK);
-		fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
+		if (req.getMethod() == "POST") {
+			std::string body = req.getBody();
+			if (!body.empty()) {
+				write(pipe_in[1], body.c_str(), body.length());
+			}
+		}
+		close(pipe_in[1]);
 
+		fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
 		_freeEnv(envp);
 
 		res.setStatusCode(100);
 		res.setCgiPid(pid);
-		res.setCgiFdIn(pipe_in[1]);
 		res.setCgiFdOut(pipe_out[0]);
 		
 		return res;
