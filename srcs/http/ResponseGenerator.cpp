@@ -133,46 +133,51 @@ HttpResponse ResponseGenerator::generate(const HttpRequest& req, const ServerCon
 }
 
 HttpResponse ResponseGenerator::_handleGET(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
-	HttpResponse res;
-	std::string fullPath = loc.getRoot() + req.getPath();
+    HttpResponse res;
 
-	struct stat s;
-	if (stat(fullPath.c_str(), &s) != 0) {
-		res.generateErrorPage(404, config);
-		return res;
-	}
+    std::string currentRoot = loc.getRoot();
+    if (currentRoot.empty()) {
+        currentRoot = config.getRoot();
+    }
+    std::string fullPath = currentRoot + req.getPath();
 
-	if (S_ISDIR(s.st_mode)) {
-		const std::vector<std::string>& indexes = loc.getIndex();
-		bool found = false;
+    struct stat s;
+    if (stat(fullPath.c_str(), &s) != 0) {
+        res.generateErrorPage(404, config);
+        return res;
+    }
 
-		for (size_t i = 0; i < indexes.size(); ++i) {
-			std::string candidate = fullPath + "/" + indexes[i];
+    if (S_ISDIR(s.st_mode)) {
+        const std::vector<std::string>& indexes = loc.getIndex();
+        bool found = false;
 
-			if (stat(candidate.c_str(), &s) == 0) {
-				fullPath = candidate;
-				found = true;
-				break;
-			}
-		}
+        for (size_t i = 0; i < indexes.size(); ++i) {
+            std::string candidate = fullPath + "/" + indexes[i];
 
-		if (!found) {
-			res.generateErrorPage(404, config);
-			return res;
-		}
-	}
+            if (stat(candidate.c_str(), &s) == 0) {
+                fullPath = candidate;
+                found = true;
+                break;
+            }
+        }
 
-	std::string content = _readFile(fullPath);
-	if (content.empty()) {
-		res.generateErrorPage(403, config);
-		return res;
-	}
+        if (!found) {
+            res.generateErrorPage(403, config); 
+            return res;
+        }
+    }
 
-	res.setStatusCode(200);
-	res.setBody(content);
-	res.setContentType(fullPath);
+    std::string content = _readFile(fullPath);
+    if (content.empty()) {
+        res.generateErrorPage(403, config);
+        return res;
+    }
 
-	return res;
+    res.setStatusCode(200);
+    res.setBody(content);
+    res.setContentType(fullPath);
+
+    return res;
 }
 
 HttpResponse ResponseGenerator::_handlePOST(const HttpRequest& req, const LocationConfig& loc, const ServerConfig& config) {
