@@ -13,16 +13,25 @@ PATH_OBJS = objs/
 SRC =	Client.cpp					\
 		http/HttpRequest.cpp		\
 		http/HttpResponse.cpp		\
-		main.cpp					\
 		http/ResponseGenerator.cpp	\
+		session/SessionManager.cpp	\
 		Webserver.cpp				\
 		WebserverCGI.cpp			\
 		WebserverSignals.cpp		\
 		WebserverUtils.cpp			\
-		parse/ConfigParser.cpp parse/ParseListen.cpp parse/ParseServerName.cpp 											\
-		parse/ParseRoot.cpp parse/ParseIndex.cpp parse/ParseMaxSize.cpp parse/ParseErrorPage.cpp 						\
-		parse/ParseLocation.cpp config/ServerConfig.cpp config/LocationConfig.cpp utils/utils.cpp utils/debugPrint.cpp	\
-		session/SessionManager.cpp
+		parse/ConfigParser.cpp 		\
+		parse/ParseListen.cpp 		\
+		parse/ParseServerName.cpp 	\
+		parse/ParseRoot.cpp 		\
+		parse/ParseIndex.cpp 		\
+		parse/ParseMaxSize.cpp 		\
+		parse/ParseErrorPage.cpp 	\
+		parse/ParseLocation.cpp 	\
+		config/ServerConfig.cpp 	\
+		config/LocationConfig.cpp 	\
+		utils/utils.cpp 			\
+		utils/debugPrint.cpp		\
+		main.cpp
 
 SRCS = $(addprefix $(PATH_SRCS), $(SRC))
 OBJS = $(addprefix $(PATH_OBJS), $(SRC:.cpp=.o))
