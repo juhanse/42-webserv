@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   LocationConfig.cpp                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/18 13:48:45 by jdebrull          #+#    #+#             */
+/*   Updated: 2026/03/18 13:48:46 by jdebrull         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "LocationConfig.hpp"
 
 LocationConfig::LocationConfig() : client_max_size(0), return_code(0), autoindex(false) {}
