@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ParseServerName.cpp                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/18 13:49:49 by jdebrull          #+#    #+#             */
+/*   Updated: 2026/03/18 13:49:50 by jdebrull         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ParseServerName.hpp"
 
 static bool	isValidServerName(const std::string& token)

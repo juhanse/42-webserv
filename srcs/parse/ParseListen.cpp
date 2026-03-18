@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ParseListen.cpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jdebrull <jdebrull@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/18 13:49:21 by jdebrull          #+#    #+#             */
+/*   Updated: 2026/03/18 13:49:21 by jdebrull         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ParseListen.hpp"
 
 static void	assignPort(const char* str, size_t& i, ServerConfig& serv)
