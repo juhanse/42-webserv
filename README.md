@@ -30,48 +30,29 @@ Run the server by specifying a configuration file:
 
 `./webserv srcs/config.conf`
 
+Check the current connections:
+
+`ss -tna | grep 8080` or `lsof -i:8080`
+
 Go to the default URL `http://localhost:8080`
 
 > You can edit the `srcs/config.conf` file to change the server configuration
 
+## Usage
+1. POST Method :
+`curl -X POST -H "Content-Type: plain/text" --data "utilisateur=12345" localhost:8080`
 
-## Project structure
-	webserv_git/
-	├── srcs/
-	│	├── main.cpp
-	│	├── Webserver.cpp / Webserver.hpp / Webserver_utils.cpp
-	│	├── Client.cpp / Client.hpp
-	│	├── config/
-	│	│	├── ServerConfig.cpp / ServerConfig.hpp
-	│	│	└── LocationConfig.cpp / LocationConfig.hpp
-	│	├── http/
-	│	│	├── HttpRequest.cpp / HttpRequest.hpp
-	│	│	├── HttpResponse.cpp / HttpResponse.hpp
-	│	│	└── ResponseGenerator.cpp / ResponseGenerator.hpp
-	│	├── parse/
-	│	│	├── ConfigParser.cpp / ConfigParser.hpp
-	│	│	├── ParseListen.cpp / ParseListen.hpp
-	│	│	├── ParseLocation.cpp / ParseLocation.hpp
-	│	│	├── ParseMaxSize.cpp / ParseMaxSize.hpp
-	│	│	├── ParseRoot.cpp / ParseRoot.hpp
-	│	│	├── ParseServerName.cpp / ParseServerName.hpp
-	│	│	├── ParseErrorPage.cpp / ParseErrorPage.hpp
-	│	│	└── ParseIndex.cpp / ParseIndex.hpp
-	│	├── session/
-	│	│	└── SessionManager.cpp / SessionManager.hpp
-	│	└── utils/
-	│		 └── utils.cpp / utils.hpp / debugPrint.cpp / debugPrint.hpp
-	├── srcs/www/
-	│	├── 404.html
-	│	├── index.html
-	│	├── uploads/
-	│	└── cgi-bin/
-	├── objs/  (compiled objects)
-	├── Makefile
-	└── README.md
+2. DELETE Method :
+`curl -X DELETE http://localhost:8080/uploads/background.png`
+
+3. GET Method with CGI :
+`curl http://localhost:8080/cgi-bin/bonus.sh`
+
+4. POST Method with CGI :
+`curl -X POST -d "user=juhanse" http://localhost:8080/cgi-bin/post.py`
 
 
-# 📚 References
+# 📚 Resources
 - https://nginx.org/en/docs/
 - https://fr.wikipedia.org/wiki/FastCGI
 - https://m4nnb3ll.medium.com/webserv-building-a-non-blocking-web-server-in-c-98-a-42-project-04c7365e4ec7
