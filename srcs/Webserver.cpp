@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserver.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ade-woel <ade-woel@student.s19.be>         +#+  +:+       +#+        */
+/*   By: juhanse <juhanse@student.42belgium.be>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/18 13:55:27 by ade-woel          #+#    #+#             */
-/*   Updated: 2026/03/18 13:55:28 by ade-woel         ###   ########.fr       */
+/*   Updated: 2026/03/18 23:53:32 by juhanse          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,14 +84,14 @@ void	Webserver::newClient(int listFd) {
 
 int Webserver::newServ(ServerConfig* config) {	
 	int	listen_fd = newListenSock(config->getPort());
+
 	if (listen_fd == -1) {
-		std::cerr	<< "Listen socket creation failed on port "
-					<< config->getPort() << std::endl;
+		std::cerr << "Listen socket creation failed on port " << config->getPort() << std::endl;
 		return (-1);	
 	}
+
 	sendToWatchList(listen_fd);
-	_listenFds[listen_fd] = config;
-	
+	_listenFds[listen_fd] = config;	
 	std::cout << "Server listening on port " << config->getPort() << "..." << std::endl;
 
 	return (0);
@@ -134,7 +134,6 @@ void	Webserver::receiveRequest(int fd) {
 }
 
 void	Webserver::runServ() {
-
 	setUpSignals();
 
 	while (g_shutdown == 0) {
@@ -153,7 +152,6 @@ void	Webserver::runServ() {
 			closeTimedOut();
 			continue ;
 		}
-
 		else {
 			for (size_t i = 0; i < _pollWatch.size(); i++) {
 				if (g_shutdown == 1)
@@ -184,7 +182,6 @@ void	Webserver::runServ() {
 					else
 						receiveRequest(fd);
 				}
-
 				else if (revents & POLLOUT)
 					if (!isCgi)
 						sendResponse(fd);

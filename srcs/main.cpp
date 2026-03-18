@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ade-woel <ade-woel@student.s19.be>         +#+  +:+       +#+        */
+/*   By: juhanse <juhanse@student.42belgium.be>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/18 13:55:23 by ade-woel          #+#    #+#             */
-/*   Updated: 2026/03/18 13:55:24 by ade-woel         ###   ########.fr       */
+/*   Updated: 2026/03/18 22:55:13 by juhanse          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,16 +26,14 @@ int	main(int ac, char **av) {
 	std::vector<ServerConfig> servers;
 	std::vector<ServerConfig*> configurations;
 
-	try
-	{
+	try {
 		ConfigParser parser;
 
 		servers = parser.parse(av[1]);
 	
 		std::cout << "Configuration file is valid" << std::endl;
 	}
-	catch (const std::exception &e)
-	{
+	catch (const std::exception &e) {
 		std::cerr << "Config error: " << e.what() << std::endl;
 		return (1);
 	}
@@ -54,6 +52,6 @@ int	main(int ac, char **av) {
 	}
 
 	webserv.runServ();
-	
+
 	return (0);
 }
